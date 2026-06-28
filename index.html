@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cantilever Beam Calculator</title>
+<!-- MathJax for rendering equations identically to the textbook image -->
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        color: #333; 
+        margin: 20px; 
+    }
+    h2 { 
+        color: #4A86E8; 
+        font-weight: 400; 
+        font-size: 28px;
+        margin-bottom: 15px; 
+    }
+    .calc-container { 
+        display: flex; 
+        flex-wrap: wrap;
+        border: 1px solid #b3b3b3; 
+        max-width: 950px; 
+        background-color: white;
+    }
+    .col-left { 
+        width: 150px; 
+        padding: 15px; 
+        border-right: 1px solid #b3b3b3; 
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    .col-center { 
+        width: 350px; 
+        padding: 25px; 
+        border-right: 1px solid #b3b3b3; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 30px;
+        flex-shrink: 0;
+    }
+    .col-right { 
+        flex: 1; 
+        padding: 20px 30px; 
+        font-size: 15px; 
+        min-width: 300px;
+    }
+    
+    /* Input Styling */
+    .input-section {
+        margin-top: 40px; 
+        border-top: 1px solid #eee; 
+        padding-top: 15px;
+    }
+    .input-group { 
+        margin-bottom: 12px; 
+    }
+    .input-group label { 
+        display: block; 
+        font-size: 12px; 
+        margin-bottom: 4px; 
+        color: #555;
+    }
+    .input-group input { 
+        width: 100%; 
+        padding: 6px; 
+        box-sizing: border-box; 
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+    
+    /* Formula Styling */
+    .section-title { 
+        font-style: italic; 
+        text-decoration: underline; 
+        margin-top: 20px; 
+        margin-bottom: 10px; 
+    }
+    .section-title:first-child { 
+        margin-top: 0; 
+    }
+    .formula { 
+        margin-bottom: 4px; 
+        padding-left: 20px;
+        min-height: 40px;
+    }
+    .substitution {
+        color: #0066cc; /* Differentiates the substitution step visually */
+        font-size: 13px;
+        padding-left: 40px;
+        margin-bottom: 6px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .result { 
+        color: #333; 
+        font-weight: bold; 
+        padding-left: 40px; 
+        margin-bottom: 15px; 
+        font-size: 14px;
+    }
+    
+    /* SVG Graphics */
+    .svg-diagram { 
+        width: 100%; 
+        max-width: 300px; 
+        height: auto; 
+        overflow: visible; 
+    }
+
+    /* Tab Styling */
+    .tab {
+        display: flex;
+        flex-wrap: wrap;
+        border: 1px solid #b3b3b3;
+        background-color: #f1f1f1;
+        max-width: 950px;
+        border-bottom: none;
+    }
+    .tab button {
+        background-color: inherit;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 10px 14px;
+        transition: 0.3s;
+        font-size: 14px;
+        font-family: inherit;
+        flex-grow: 1;
+        text-align: center;
+    }
+    .tab button:hover {
+        background-color: #ddd;
+    }
+    .tab button.active {
+        background-color: white;
+        border-top: 2px solid #4A86E8;
+        font-weight: bold;
+    }
+    .tabcontent {
+        display: none;
+    }
+    .tabcontent.active-tab {
+        display: flex;
+    }
+
+    /* Responsive */
+    @media (max-width: 850px) {
+        .col-left, .col-center {
+            border-right: none;
+            border-bottom: 1px solid #b3b3b3;
+            width: 100%;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div style="display: flex; justify-content: space-between; align-items: center; max-width: 950px; flex-wrap: wrap;">
+    <h2>Structural Beam Calculator</h2>
+    <div style="margin-bottom: 15px;">
+        <label for="unit-select" style="font-weight: 500; font-size: 14px; margin-right: 8px;">System of Units:</label>
+        <select id="unit-select" onchange="changeUnits()" style="padding: 6px 10px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; background-color: #f9f9f9; outline: none; cursor: pointer;">
+            <option value="metric_n_m">Metric Standard (N, m, Pa, m⁴)</option>
+            <option value="metric_kn_m">Metric Structural (kN, m, GPa, cm⁴)</option>
+            <option value="us_lbf_in">US Mechanical (lbf, in, psi, in⁴)</option>
+            <option value="us_kip_ft">US Structural (kip, ft, ksi, in⁴)</option>
+        </select>
+    </div>
+</div>
+
+<div class="tab">
+    <button class="tablinks active" onclick="openTab(event, 'EndLoad')">End Load</button>
+    <button class="tablinks" onclick="openTab(event, 'IntermediateLoad')">Intermediate Load</button>
+    <button class="tablinks" onclick="openTab(event, 'UDLoad')">Uniform Distributed Load</button>
+    <button class="tablinks" onclick="openTab(event, 'TriangularLoad')">Triangular Load</button>
+    <button class="tablinks" onclick="openTab(event, 'EndMoment')">End Moment</button>
+    <button class="tablinks" onclick="openTab(event, 'SimplySupported')">SS (Int Load)</button>
+    <button class="tablinks" onclick="openTab(event, 'SSCenterLoad')">SS (Center Load)</button>
+    <button class="tablinks" onclick="openTab(event, 'SS2Loads')">SS (2 Loads)</button>
+    <button class="tablinks" onclick="openTab(event, 'SSUDLoad')">SS (UDL)</button>
+    <button class="tablinks" onclick="openTab(event, 'SSMoments')">SS (Moments)</button>
+    <button class="tablinks" onclick="openTab(event, 'SSOneMoment')">SS (One Moment)</button>
+    <button class="tablinks" onclick="openTab(event, 'SSCenterMoment')">SS (Center Moment)</button>
+    <button class="tablinks" onclick="openTab(event, 'FixedFixedCenter')">Fixed-Fixed (Center)</button>
+    <button class="tablinks" onclick="openTab(event, 'FixedFixedUDL')">Fixed-Fixed (UDL)</button>
+    <button class="tablinks" onclick="openTab(event, 'SSCombined')" style="background-color: #e6f2ff; border-top: 2px solid #0056b3;">SS (UDL + Center Load)</button>
+</div>
+
+<div id="EndLoad" class="calc-container tabcontent active-tab">
+    <!-- Left Column: Title & Inputs -->
+    <div class="col-left">
+        <p>Cantilever, End Load</p>
+        
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group">
+                <label>Force F (N)</label>
+                <input type="number" id="inp-f" value="1000" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Length L (m)</label>
+                <input type="number" id="inp-l" value="5" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Position x (m)</label>
+                <input type="number" id="inp-x" value="2.5" oninput="calculate()" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Modulus E (Pa)</label>
+                <input type="number" id="inp-e" value="200000000000" oninput="calculate()">
+            </div>
+            <div class="input-group">
+                <label>Inertia I (m^4)</label>
+                <input type="number" id="inp-i" value="0.0001" oninput="calculate()">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Center Column: Graphics -->
+    <div class="col-center">
+        <!-- Beam Diagram -->
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <line x1="10" y1="15" x2="20" y2="25" stroke="black" stroke-width="1.5"/>
+            <line x1="10" y1="30" x2="20" y2="40" stroke="black" stroke-width="1.5"/>
+            <line x1="10" y1="45" x2="20" y2="55" stroke="black" stroke-width="1.5"/>
+            <line x1="10" y1="60" x2="20" y2="70" stroke="black" stroke-width="1.5"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <path d="M 270 5 L 270 25 M 264 18 L 270 30 L 276 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="252" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+            <line x1="20" y1="90" x2="270" y2="90" stroke="black" stroke-width="1"/>
+            <line x1="20" y1="85" x2="20" y2="95" stroke="black" stroke-width="1"/>
+            <line x1="270" y1="85" x2="270" y2="95" stroke="black" stroke-width="1"/>
+            <polygon points="20,90 28,87 28,93" fill="black" />
+            <polygon points="270,90 262,87 262,93" fill="black" />
+            <rect x="140" y="80" width="20" height="20" fill="white" />
+            <text x="145" y="94" font-family="sans-serif" font-size="13">L</text>
+            <line x1="20" y1="110" x2="70" y2="110" stroke="black" stroke-width="1"/>
+            <polygon points="70,110 62,107 62,113" fill="black" />
+            <text x="78" y="114" font-family="sans-serif" font-size="13">x</text>
+        </svg>
+
+        <!-- Shear Diagram (V) -->
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="250" height="40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+
+        <!-- Moment Diagram (M) -->
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,20 270,20 20,60" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <text x="20" y="75" font-family="sans-serif" font-size="11">M<tspan baseline-shift="sub" font-size="9">max</tspan></text>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <!-- Right Column: Formulas & Live Results -->
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{Fx^2}{6EI}(3L - x) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{FL^3}{3EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{Fx}{2EI}(2L - x) \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res-slope">0</span> rad</div>
+        <div class="formula">\( \theta_{max} = \frac{FL^2}{2EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \theta_{max} = \) <span id="res-slope-max">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = +F \)</div>
+        <div class="result">↳ \( V = \) <span id="res-shear">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M = -F(L - x) \)</div>
+        <div class="result">↳ \( M = \) <span id="res-moment">0</span> N·m</div>
+        <div class="formula">\( M_{max} = -FL \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 2: Intermediate Load -->
+<div id="IntermediateLoad" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Cantilever, Intermediate Load</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Force F (N)</label><input type="number" id="inp2-f" value="1000" oninput="calculateInt()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp2-l" value="5" oninput="calculateInt()"></div>
+            <div class="input-group"><label>Load Pos a (m)</label><input type="number" id="inp2-a" value="3" oninput="calculateInt()" step="0.1"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp2-x" value="2" oninput="calculateInt()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp2-e" value="200000000000" oninput="calculateInt()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp2-i" value="0.0001" oninput="calculateInt()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <!-- SVG simplified for length -->
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <path d="M 170 5 L 170 25 M 164 18 L 170 30 L 176 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="152" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+            <line x1="20" y1="90" x2="270" y2="90" stroke="black" stroke-width="1"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="150" height="40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,20 170,20 20,60" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{Fx^2}{6EI}(3a - x) \quad (0 \le x \le a) \)</div>
+        <div class="formula">\( \delta = -\frac{Fa^2}{6EI}(3x - a) \quad (a \le x \le L) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res2-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{Fa^2}{6EI}(3L - a) \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res2-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{Fx}{2EI}(2a - x) \quad (0 \le x \le a) \)</div>
+        <div class="formula">\( \theta = -\frac{Fa^2}{2EI} \quad (a \le x \le L) \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res2-slope">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = +F \quad (0 \le x \le a) \)</div>
+        <div class="formula">\( V = 0 \quad (a \le x \le L) \)</div>
+        <div class="result">↳ \( V = \) <span id="res2-shear">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M = -F(a - x) \quad (0 \le x \le a) \)</div>
+        <div class="formula">\( M = 0 \quad (a \le x \le L) \)</div>
+        <div class="result">↳ \( M = \) <span id="res2-moment">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 3: Uniform Distributed Load -->
+<div id="UDLoad" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Cantilever, Uniform Distributed Load</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp3-w" value="500" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp3-l" value="5" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp3-x" value="2.5" oninput="calculateUDL()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp3-e" value="200000000000" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp3-i" value="0.0001" oninput="calculateUDL()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <line x1="20" y1="10" x2="270" y2="10" stroke="#c00000" stroke-width="1.5"/>
+            <text x="140" y="5" font-family="sans-serif" font-weight="bold" font-size="14">w</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <polygon points="20,20 270,60 20,60" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <path d="M 20 20 L 20 60 Q 145 20 270 20 Z" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{wx^2}{24EI}(6L^2 - 4Lx + x^2) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res3-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{wL^4}{8EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res3-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{wx}{6EI}(3L^2 - 3Lx + x^2) \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res3-slope">0</span> rad</div>
+        <div class="formula">\( \theta_{max} = \frac{wL^3}{6EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \theta_{max} = \) <span id="res3-slope-max">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = +w(L - x) \)</div>
+        <div class="result">↳ \( V = \) <span id="res3-shear">0</span> N</div>
+        <div class="formula">\( V_{max} = +wL \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( V_{max} = \) <span id="res3-shear-max">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M = -w(L - x)^2 / 2 \)</div>
+        <div class="result">↳ \( M = \) <span id="res3-moment">0</span> N·m</div>
+        <div class="formula">\( M_{max} = -wL^2 / 2 \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res3-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 4: Triangular Distributed Load -->
+<div id="TriangularLoad" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Cantilever, Triangular Distributed Load</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Load w1 (N/m)</label><input type="number" id="inp4-w1" value="500" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp4-l" value="5" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp4-x" value="2.5" oninput="calculateTri()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp4-e" value="200000000000" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp4-i" value="0.0001" oninput="calculateTri()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,10 270,30 20,30" fill="none" stroke="#c00000" stroke-width="1.5"/>
+            <text x="15" y="5" font-family="sans-serif" font-weight="bold" font-size="14">w<tspan baseline-shift="sub" font-size="10">1</tspan></text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <path d="M 20 20 Q 145 60 270 60 L 20 60 Z" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <path d="M 20 60 Q 145 20 270 20 L 270 20 L 20 20 Z" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{w_1 x^2}{120LEI}(10L^3 - 10L^2x + 5Lx^2 - x^3) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res4-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{w_1 L^4}{30EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res4-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{w_1 x}{24LEI}(4L^3 - 6L^2x + 4Lx^2 - x^3) \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res4-slope">0</span> rad</div>
+        <div class="formula">\( \theta_{max} = \frac{w_1 L^3}{24EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \theta_{max} = \) <span id="res4-slope-max">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = +w_1(L - x)^2 / (2L) \)</div>
+        <div class="result">↳ \( V = \) <span id="res4-shear">0</span> N</div>
+        <div class="formula">\( V_{max} = +w_1L / 2 \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( V_{max} = \) <span id="res4-shear-max">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M = -w_1(L - x)^3 / (6L) \)</div>
+        <div class="result">↳ \( M = \) <span id="res4-moment">0</span> N·m</div>
+        <div class="formula">\( M_{max} = -w_1L^2 / 6 \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res4-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 5: End Moment -->
+<div id="EndMoment" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Cantilever, End Moment</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp5-m0" value="5000" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp5-l" value="5" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp5-x" value="2.5" oninput="calculateMoment()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp5-e" value="200000000000" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp5-i" value="0.0001" oninput="calculateMoment()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <path d="M 255 20 C 285 -5, 300 20, 285 45" fill="none" stroke="#c00000" stroke-width="2.5"/>
+            <polygon points="285,46 278,35 292,38" fill="#c00000"/>
+            <text x="285" y="60" font-family="sans-serif" font-weight="bold" font-size="14">M<tspan baseline-shift="sub" font-size="10">0</tspan></text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <rect x="20" y="20" width="250" height="40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{M_0 x^2}{2EI} \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res5-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{M_0 L^2}{2EI} \quad @ \; x = L \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res5-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{M_0 x}{EI} \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res5-slope">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = 0 \)</div>
+        <div class="result">↳ \( V = \) <span id="res5-shear">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M = -M_0 \)</div>
+        <div class="result">↳ \( M = \) <span id="res5-moment">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 6: Simply Supported, Intermediate Load -->
+<div id="SimplySupported" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, Intermediate Load</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Force F (N)</label><input type="number" id="inp6-f" value="1000" oninput="calculateSS()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp6-l" value="5" oninput="calculateSS()"></div>
+            <div class="input-group"><label>Load Pos a (m)</label><input type="number" id="inp6-a" value="3" oninput="calculateSS()" step="0.1"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp6-x" value="2.5" oninput="calculateSS()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp6-e" value="200000000000" oninput="calculateSS()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp6-i" value="0.0001" oninput="calculateSS()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <path d="M 170 5 L 170 25 M 164 18 L 170 30 L 176 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="152" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="150" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <rect x="170" y="40" width="100" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,60 170,20 270,60" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{Fbx}{6LEI}(L^2 - b^2 - x^2) \quad (0 \le x \le a) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res6-delta">0</span> m</div>
+        <div class="formula">For \( a \ge b \):</div>
+        <div class="formula">\( \delta_{max} = \frac{Fb(L^2 - b^2)^{3/2}}{9\sqrt{3}LEI} \quad @ \; x = \sqrt{\frac{L^2 - b^2}{3}} \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res6-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{Fb}{6LEI}(L^2 - b^2 - 3x^2) \quad (0 \le x \le a) \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res6-slope">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_1 = +Fb / L \quad (0 \le x \le a) \)</div>
+        <div class="formula">\( V_2 = -Fa / L \quad (a \le x \le L) \)</div>
+        <div class="result">↳ \( V_1 = \) <span id="res6-shear-v1">0</span> N</div>
+        <div class="result">↳ \( V_2 = \) <span id="res6-shear-v2">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = +Fab / L \quad @ \; x = a \)</div>
+        <div class="result">↳ \( M = \) <span id="res6-moment">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 7: Simply Supported, Center Load -->
+<div id="SSCenterLoad" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, Center Load</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Force F (N)</label><input type="number" id="inp7-f" value="1000" oninput="calculateSSCenter()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp7-l" value="5" oninput="calculateSSCenter()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp7-x" value="2.5" oninput="calculateSSCenter()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp7-e" value="200000000000" oninput="calculateSSCenter()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp7-i" value="0.0001" oninput="calculateSSCenter()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <path d="M 145 5 L 145 25 M 139 18 L 145 30 L 151 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="127" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="125" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <rect x="145" y="40" width="125" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,60 145,20 270,60" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{Fx}{48EI}(3L^2 - 4x^2) \quad (0 \le x \le L/2) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res7-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{FL^3}{48EI} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res7-delta-max">0</span> m</div>
+
+        <div class="section-title">Slope:</div>
+        <div class="formula">\( \theta = -\frac{F}{16EI}(L^2 - 4x^2) \quad (0 \le x \le L/2) \)</div>
+        <div class="result">↳ \( \theta = \) <span id="res7-slope">0</span> rad</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_1 = +F / 2 \quad (0 \le x \le L/2) \)</div>
+        <div class="result">↳ \( V_1 = \) <span id="res7-shear-v1">0</span> N</div>
+        <div class="formula">\( V_2 = -F / 2 \quad (L/2 \le x \le L) \)</div>
+        <div class="result">↳ \( V_2 = \) <span id="res7-shear-v2">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = FL / 4 \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res7-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 8: Simply Supported, 2 Loads at Equal Distances -->
+<div id="SS2Loads" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, 2 Loads</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Force F (each) (N)</label><input type="number" id="inp8-f" value="1000" oninput="calculateSS2Loads()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp8-l" value="5" oninput="calculateSS2Loads()"></div>
+            <div class="input-group"><label>Distance a (m)</label><input type="number" id="inp8-a" value="1.5" oninput="calculateSS2Loads()" step="0.1"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp8-x" value="2.5" oninput="calculateSS2Loads()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp8-e" value="200000000000" oninput="calculateSS2Loads()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp8-i" value="0.0001" oninput="calculateSS2Loads()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <path d="M 85 5 L 85 25 M 79 18 L 85 30 L 91 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="67" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+            <path d="M 205 5 L 205 25 M 199 18 L 205 30 L 211 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="215" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="65" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <rect x="205" y="40" width="65" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,60 85,20 205,20 270,60" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = \frac{Fx}{6EI}(3aL - 3a^2 - x^2) \quad (0 \le x \le a) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res8-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{Fa}{24EI}(3L^2 - 4a^2) \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res8-delta-max">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_1 = +F \quad (0 \le x \le a) \)</div>
+        <div class="result">↳ \( V_1 = \) <span id="res8-shear-v1">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = Fa \quad (a \le x \le L-a) \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res8-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 9: Simply Supported, Uniform Distributed Load -->
+<div id="SSUDLoad" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, UDL</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp9-w" value="500" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp9-l" value="5" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp9-x" value="2.5" oninput="calculateSSUDL()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp9-e" value="200000000000" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp9-i" value="0.0001" oninput="calculateSSUDL()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="10" x2="270" y2="10" stroke="#c00000" stroke-width="1.5"/>
+            <text x="140" y="5" font-family="sans-serif" font-weight="bold" font-size="14">w</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <polygon points="20,40 20,20 145,40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <polygon points="145,40 270,60 270,40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <path d="M 20 60 Q 145 -20 270 60 Z" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{wx}{24EI}(L^3 - 2Lx^2 + x^3) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res9-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{5wL^4}{384EI} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res9-delta-max">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_1 = +wL/2 \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( V_1 = \) <span id="res9-shear-v1">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = wL^2 / 8 \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res9-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 10: Simply Supported, Moment at Each Support -->
+<div id="SSMoments" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, Moments at Ends</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp10-m0" value="5000" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp10-l" value="5" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp10-x" value="2.5" oninput="calculateSSMoments()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp10-e" value="200000000000" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp10-i" value="0.0001" oninput="calculateSSMoments()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <path d="M 40 20 C 10 -5, -5 20, 10 45" fill="none" stroke="#c00000" stroke-width="2.5"/>
+            <polygon points="10,46 17,35 3,38" fill="#c00000"/>
+            <path d="M 250 20 C 280 -5, 295 20, 280 45" fill="none" stroke="#c00000" stroke-width="2.5"/>
+            <polygon points="280,46 273,35 287,38" fill="#c00000"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <rect x="20" y="20" width="250" height="40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{M_0 x}{2EI}(L - x) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res10-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{M_0 L^2}{8EI} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res10-delta-max">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = 0 \)</div>
+        <div class="result">↳ \( V = \) <span id="res10-shear">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M = M_0 \)</div>
+        <div class="result">↳ \( M = \) <span id="res10-moment">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 11: Simply Supported, Moment at One Support -->
+<div id="SSOneMoment" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, Moment at One Support</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp11-m0" value="5000" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp11-l" value="5" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp11-x" value="2.5" oninput="calculateSSOneMoment()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp11-e" value="200000000000" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp11-i" value="0.0001" oninput="calculateSSOneMoment()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <path d="M 40 20 C 10 -5, -5 20, 10 45" fill="none" stroke="#c00000" stroke-width="2.5"/>
+            <polygon points="10,46 17,35 3,38" fill="#c00000"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="35" font-family="sans-serif" font-size="16">V</text>
+            <line x1="20" y1="20" x2="270" y2="20" stroke="black" stroke-width="2"/>
+            <rect x="20" y="20" width="250" height="30" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,20 270,60 20,60" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{M_0 x}{6LEI}(2L^2 - 3Lx + x^2) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res11-delta">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = -M_0 / L \)</div>
+        <div class="result">↳ \( V = \) <span id="res11-shear">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = M_0 \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res11-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 12: Simply Supported, Center Moment -->
+<div id="SSCenterMoment" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, Center Moment</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp12-m0" value="5000" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp12-l" value="5" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp12-x" value="2.5" oninput="calculateSSCenterMoment()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp12-e" value="200000000000" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp12-i" value="0.0001" oninput="calculateSSCenterMoment()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <path d="M 125 25 C 125 5, 165 5, 165 25" fill="none" stroke="#c00000" stroke-width="2.5"/>
+            <polygon points="165,26 158,15 172,17" fill="#c00000"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="250" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,40 145,20 145,40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <polygon points="145,40 145,60 270,40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{M_0 x}{24LEI}(L^2 - 4x^2) \quad (0 \le x \le L/2) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res12-delta">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V = +M_0 / L \)</div>
+        <div class="result">↳ \( V = \) <span id="res12-shear">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = M_0 / 2 \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res12-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 13: Fixed-Fixed, Center Load -->
+<div id="FixedFixedCenter" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Fixed-Fixed, Center Load</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Force F (N)</label><input type="number" id="inp13-f" value="1000" oninput="calculateFFCenterLoad()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp13-l" value="5" oninput="calculateFFCenterLoad()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp13-x" value="2.5" oninput="calculateFFCenterLoad()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp13-e" value="200000000000" oninput="calculateFFCenterLoad()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp13-i" value="0.0001" oninput="calculateFFCenterLoad()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <line x1="270" y1="10" x2="270" y2="70" stroke="black" stroke-width="3"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <path d="M 145 5 L 145 25 M 139 18 L 145 30 L 151 18 Z" fill="#c00000" stroke="#c00000" stroke-width="2"/>
+            <text x="155" y="15" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <rect x="20" y="20" width="125" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <rect x="145" y="40" width="125" height="20" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <polygon points="20,40 20,60 82.5,40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <polygon points="82.5,40 145,20 207.5,40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <polygon points="207.5,40 270,60 270,40" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{Fx^2}{48EI}(3L - 4x) \quad (0 \le x \le L/2) \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res13-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{FL^3}{192EI} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res13-delta-max">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_1 = +F / 2 \quad (0 \le x \le L/2) \)</div>
+        <div class="result">↳ \( V_1 = \) <span id="res13-shear-v1">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_1 = M_3 = -FL / 8 \quad @ \; x = 0 \; \& \; x = L \)</div>
+        <div class="result">↳ \( M_1, M_3 = \) <span id="res13-moment-m1">0</span> N·m</div>
+        <div class="formula">\( M_2 = +FL / 8 \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( M_2 = \) <span id="res13-moment-m2">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 14: Fixed-Fixed, UDL -->
+<div id="FixedFixedUDL" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Fixed-Fixed, UDL</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp14-w" value="500" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp14-l" value="5" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp14-x" value="2.5" oninput="calculateFFUDL()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp14-e" value="200000000000" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp14-i" value="0.0001" oninput="calculateFFUDL()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <line x1="20" y1="10" x2="20" y2="70" stroke="black" stroke-width="3"/>
+            <line x1="270" y1="10" x2="270" y2="70" stroke="black" stroke-width="3"/>
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <line x1="20" y1="10" x2="270" y2="10" stroke="#c00000" stroke-width="1.5"/>
+            <path d="M 20 10 L 20 25 M 17 20 L 20 26 L 23 20 Z" fill="#c00000" stroke="#c00000"/>
+            <!-- Abbreviated arrows for space -->
+            <path d="M 145 10 L 145 25 M 142 20 L 145 26 L 148 20 Z" fill="#c00000" stroke="#c00000"/>
+            <path d="M 270 10 L 270 25 M 267 20 L 270 26 L 273 20 Z" fill="#c00000" stroke="#c00000"/>
+            <text x="140" y="5" font-family="sans-serif" font-weight="bold" font-size="14">w</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <polygon points="20,40 20,20 145,40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <polygon points="145,40 270,60 270,40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <path d="M 20 40 L 20 60 Q 145 0 270 60 L 270 40 Z" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection:</div>
+        <div class="formula">\( \delta = -\frac{wx^2}{24EI}(L - x)^2 \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res14-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{wL^4}{384EI} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res14-delta-max">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_1 = +wL/2 \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( V_1 = \) <span id="res14-shear-v1">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_1 = M_3 = -wL^2/12 \quad @ \; x = 0 \; \& \; x = L \)</div>
+        <div class="result">↳ \( M_1, M_3 = \) <span id="res14-moment-m1">0</span> N·m</div>
+        <div class="formula">\( M_2 = wL^2/24 \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( M_2 = \) <span id="res14-moment-m2">0</span> N·m</div>
+    </div>
+</div>
+
+<!-- TAB 15: Simply Supported, COMBINED UDL + Center Load -->
+<div id="SSCombined" class="calc-container tabcontent">
+    <div class="col-left">
+        <p>Simply Supported, Combined UDL & Center Point Load (Superposition)</p>
+        <div class="input-section">
+            <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
+            <div class="input-group"><label>Point F (N)</label><input type="number" id="inp15-f" value="1000" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp15-w" value="500" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp15-l" value="5" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp15-x" value="2.5" oninput="calculateSSCombined()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp15-e" value="200000000000" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp15-i" value="0.0001" oninput="calculateSSCombined()"></div>
+        </div>
+    </div>
+    
+    <div class="col-center">
+        <svg viewBox="0 0 300 120" class="svg-diagram">
+            <rect x="20" y="30" width="250" height="15" fill="#5b9bd5" stroke="black" stroke-width="1"/>
+            <!-- Supports -->
+            <polygon points="20,45 10,60 30,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <polygon points="270,45 260,60 280,60" fill="white" stroke="black" stroke-width="1.5"/>
+            <!-- UDL w -->
+            <line x1="20" y1="10" x2="270" y2="10" stroke="#c00000" stroke-width="1.5"/>
+            <path d="M 20 10 L 20 25 M 17 20 L 20 26 L 23 20 Z" fill="#c00000" stroke="#c00000"/>
+            <path d="M 82.5 10 L 82.5 25 M 79.5 20 L 82.5 26 L 85.5 20 Z" fill="#c00000" stroke="#c00000"/>
+            <path d="M 207.5 10 L 207.5 25 M 204.5 20 L 207.5 26 L 210.5 20 Z" fill="#c00000" stroke="#c00000"/>
+            <path d="M 270 10 L 270 25 M 267 20 L 270 26 L 273 20 Z" fill="#c00000" stroke="#c00000"/>
+            <!-- Center F -->
+            <path d="M 145 0 L 145 25 M 137 15 L 145 30 L 153 15 Z" fill="#c00000" stroke="#c00000" stroke-width="3"/>
+            <text x="155" y="10" font-family="sans-serif" font-weight="bold" font-size="16">F</text>
+            <text x="50" y="5" font-family="sans-serif" font-weight="bold" font-size="14">w</text>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">V</text>
+            <polygon points="20,40 20,10 145,25 145,40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <polygon points="145,40 145,55 270,70 270,40" fill="#a9d18e" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="40" x2="270" y2="40" stroke="black" stroke-width="2"/>
+        </svg>
+        <svg viewBox="0 0 300 80" class="svg-diagram">
+            <text x="-5" y="45" font-family="sans-serif" font-size="16">M</text>
+            <!-- Steepened parabola to represent combined moment -->
+            <path d="M 20 60 Q 145 -30 270 60 Z" fill="#e66c6c" stroke="black" stroke-width="1.5"/>
+            <line x1="20" y1="60" x2="270" y2="60" stroke="black" stroke-width="2"/>
+        </svg>
+    </div>
+
+    <div class="col-right">
+        <div class="section-title">Deflection (Superposition):</div>
+        <div class="formula">\( \delta = \delta_{udl} + \delta_{point} \)</div>
+        <div class="result">↳ \( \delta = \) <span id="res15-delta">0</span> m</div>
+        <div class="formula">\( \delta_{max} = \frac{5wL^4}{384EI} + \frac{FL^3}{48EI} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( \delta_{max} = \) <span id="res15-delta-max">0</span> m</div>
+
+        <div class="section-title">Shear:</div>
+        <div class="formula">\( V_{max} = \frac{wL}{2} + \frac{F}{2} \quad @ \; x = 0 \)</div>
+        <div class="result">↳ \( V_{max} = \) <span id="res15-shear-max">0</span> N</div>
+
+        <div class="section-title">Moment:</div>
+        <div class="formula">\( M_{max} = \frac{wL^2}{8} + \frac{FL}{4} \quad @ \; x = L/2 \)</div>
+        <div class="result">↳ \( M_{max} = \) <span id="res15-moment-max">0</span> N·m</div>
+    </div>
+</div>
+
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].classList.remove("active-tab");
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "flex";
+        document.getElementById(tabName).classList.add("active-tab");
+        evt.currentTarget.className += " active";
+    }
+
+    // --- GLOBAL UNIT CONFIGURATION ---
+    let currentUnit = 'metric_n_m';
+
+    const unitProfiles = {
+        'metric_n_m': {
+            labels: { f: '(N)', l: '(m)', e: '(Pa)', i: '(m^4)', w: '(N/m)', m0: '(N·m)' },
+            resUnits: { delta: 'm', slope: '°', shear: 'N', moment: 'N·m' },
+            toBase: { f: 1, l: 1, x: 1, e: 1, i: 1, w: 1, m0: 1 },
+            fromBase: { delta: 1, slope: 180 / Math.PI, shear: 1, moment: 1 }
+        },
+        'metric_kn_m': {
+            labels: { f: '(kN)', l: '(m)', e: '(GPa)', i: '(cm^4)', w: '(kN/m)', m0: '(kN·m)' },
+            resUnits: { delta: 'mm', slope: '°', shear: 'kN', moment: 'kN·m' },
+            toBase: { f: 1000, l: 1, x: 1, e: 1e9, i: 1e-8, w: 1000, m0: 1000 },
+            fromBase: { delta: 1000, slope: 180 / Math.PI, shear: 1/1000, moment: 1/1000 }
+        },
+        'us_lbf_in': {
+            labels: { f: '(lbf)', l: '(in)', e: '(psi)', i: '(in^4)', w: '(lbf/in)', m0: '(lbf·in)' },
+            resUnits: { delta: 'in', slope: '°', shear: 'lbf', moment: 'lbf·in' },
+            toBase: { f: 4.44822, l: 0.0254, x: 0.0254, e: 6894.76, i: 4.16231e-7, w: 175.1268, m0: 0.1129848 },
+            fromBase: { delta: 1/0.0254, slope: 180 / Math.PI, shear: 1/4.44822, moment: 1/0.1129848 }
+        },
+        'us_kip_ft': {
+            labels: { f: '(kip)', l: '(ft)', e: '(ksi)', i: '(in^4)', w: '(kip/ft)', m0: '(kip·ft)' },
+            resUnits: { delta: 'in', slope: '°', shear: 'kip', moment: 'kip·ft' },
+            toBase: { f: 4448.22, l: 0.3048, x: 0.3048, e: 6894760, i: 4.16231e-7, w: 14593.9, m0: 1355.818 },
+            fromBase: { delta: 1/0.0254, slope: 180 / Math.PI, shear: 1/4448.22, moment: 1/1355.818 }
+        }
+    };
+
+    // --- DOM MANIPULATION & CONVERSION UTILITIES ---
+    function setupUnitsDOM() {
+        const typeMap = { '-f': 'f', '-l': 'l', '-a': 'l', '-x': 'x', '-e': 'e', '-i': 'i', '-w': 'w', '-w1': 'w', '-m0': 'm0' };
+        
+        // Auto-inject label spans based on id pattern matching
+        document.querySelectorAll('input[type="number"]').forEach(inp => {
+            const id = inp.id;
+            for (const suffix in typeMap) {
+                if (id.endsWith(suffix)) {
+                    inp.setAttribute('data-type', typeMap[suffix]);
+                    const label = inp.previousElementSibling;
+                    if (label && label.tagName === 'LABEL' && !label.innerHTML.includes('<span')) {
+                        let text = label.innerText.replace(/\s*\(.*\)/, '');
+                        let lblClass = typeMap[suffix] === 'x' ? 'l' : typeMap[suffix];
+                        label.innerHTML = `${text} <span class="lbl-${lblClass}">()</span>`;
+                    }
+                }
+            }
+        });
+
+        // Auto-inject unit spans into results
+        document.querySelectorAll('.result').forEach(div => {
+            const text = div.innerHTML;
+            if (text.includes('\\delta')) {
+                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-delta">m</span>');
+            } else if (text.includes('\\theta')) {
+                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-slope">°</span>');
+            } else if (text.includes('V')) {
+                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-shear">N</span>');
+            } else if (text.includes('M')) {
+                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-moment">N·m</span>');
+            }
+        });
+        
+        changeUnits(true); // Hydrate visual labels once on load
+    }
+
+    function changeUnits(isInit = false) {
+        const newUnit = document.getElementById('unit-select').value;
+        const oldP = unitProfiles[currentUnit].toBase;
+        const newP = unitProfiles[newUnit].toBase;
+
+        const typeMap = { 'f': 'f', 'l': 'l', 'a': 'l', 'x': 'l', 'e': 'e', 'i': 'i', 'w': 'w', 'm0': 'm0' };
+
+        // Convert existing input values transparently 
+        if (!isInit) {
+            document.querySelectorAll('.input-group input').forEach(inp => {
+                let type = inp.getAttribute('data-type');
+                if (type === 'x') type = 'l'; 
+                if (type && typeMap[type]) {
+                    const baseFactor = typeMap[type];
+                    let val = parseFloat(inp.value) || 0;
+                    val = (val * oldP[baseFactor]) / newP[baseFactor];
+                    inp.value = parseFloat(val.toPrecision(7)); 
+                }
+            });
+        }
+
+        currentUnit = newUnit;
+        const labels = unitProfiles[currentUnit].labels;
+        const resU = unitProfiles[currentUnit].resUnits;
+
+        // Apply updated labels
+        document.querySelectorAll('.lbl-f').forEach(el => el.innerText = labels.f);
+        document.querySelectorAll('.lbl-l').forEach(el => el.innerText = labels.l);
+        document.querySelectorAll('.lbl-e').forEach(el => el.innerText = labels.e);
+        document.querySelectorAll('.lbl-i').forEach(el => el.innerText = labels.i);
+        document.querySelectorAll('.lbl-w').forEach(el => el.innerText = labels.w);
+        document.querySelectorAll('.lbl-m0').forEach(el => el.innerText = labels.m0);
+        document.querySelectorAll('.unit-delta').forEach(el => el.innerText = resU.delta);
+        document.querySelectorAll('.unit-slope').forEach(el => el.innerText = resU.slope);
+        document.querySelectorAll('.unit-shear').forEach(el => el.innerText = resU.shear);
+        document.querySelectorAll('.unit-moment').forEach(el => el.innerText = resU.moment);
+
+        if (!isInit) calculateAll();
+    }
+
+    // --- PHYSICS HELPERS ---
+    function getBase(id, type) {
+        const inp = document.getElementById(id);
+        if(!inp) return 0;
+        let t = type;
+        if(t === 'a' || t === 'x') t = 'l'; 
+        return (parseFloat(inp.value) || 0) * unitProfiles[currentUnit].toBase[t];
+    }
+
+    function setBound(id, valBase) {
+        const inp = document.getElementById(id);
+        if(inp) inp.value = parseFloat((valBase / unitProfiles[currentUnit].toBase['l']).toPrecision(7));
+    }
+
+    function setRes(id, valBase, type, forcePlus = false) {
+        const num = valBase * unitProfiles[currentUnit].fromBase[type];
+        const el = document.getElementById(id);
+        if(!el) return;
+        
+        if (Math.abs(num) < 1e-15) {
+            el.innerText = (type === 'delta' || type === 'slope') ? "0.0000e+0" : "0.00";
+            return;
+        }
+        let str = type === 'delta' || type === 'slope' ? num.toExponential(4) : num.toFixed(2);
+        if (num > 0 && forcePlus) str = "+" + str;
+        el.innerText = str;
+    }
+
+    // --- STRUCTURAL CALCULATIONS ---
+    function calculate() {
+        const F = getBase('inp-f', 'f');
+        const L = getBase('inp-l', 'l');
+        let x = getBase('inp-x', 'x');
+        const E = getBase('inp-e', 'e');
+        const I = getBase('inp-i', 'i');
+
+        if (x > L) { x = L; setBound('inp-x', x); }
+        if (x < 0) { x = 0; setBound('inp-x', 0); }
+
+        const EI = E * I;
+        const delta = (F * Math.pow(x, 2) / (6 * EI)) * (3 * L - x);
+        const delta_max = (F * Math.pow(L, 3)) / (3 * EI); 
+        const theta = (F * x / (2 * EI)) * (2 * L - x);
+        const theta_max = (F * Math.pow(L, 2)) / (2 * EI);
+        const V = F;
+        const M = -1 * F * (L - x);
+        const M_max = -1 * F * L;
+
+        setRes('res-delta', -delta, 'delta');
+        setRes('res-delta-max', delta_max, 'delta');
+        setRes('res-slope', -theta, 'slope');
+        setRes('res-slope-max', theta_max, 'slope');
+        setRes('res-shear', V, 'shear', true);
+        setRes('res-moment', M, 'moment');
+        setRes('res-moment-max', M_max, 'moment');
+    }
+
+    function calculateInt() {
+        const F = getBase('inp2-f', 'f');
+        const L = getBase('inp2-l', 'l');
+        let a = getBase('inp2-a', 'a');
+        let x = getBase('inp2-x', 'x');
+        const E = getBase('inp2-e', 'e');
+        const I = getBase('inp2-i', 'i');
+
+        if (a > L) { a = L; setBound('inp2-a', a); }
+        if (a < 0) { a = 0; setBound('inp2-a', 0); }
+        if (x > L) { x = L; setBound('inp2-x', x); }
+        if (x < 0) { x = 0; setBound('inp2-x', 0); }
+
+        const EI = E * I;
+        let delta, theta, V, M;
+
+        if (x <= a) {
+            delta = (F * Math.pow(x, 2) / (6 * EI)) * (3 * a - x);
+            theta = (F * x / (2 * EI)) * (2 * a - x);
+            V = F;
+            M = -1 * F * (a - x);
+        } else {
+            delta = (F * Math.pow(a, 2) / (6 * EI)) * (3 * x - a);
+            theta = (F * Math.pow(a, 2)) / (2 * EI);
+            V = 0;
+            M = 0;
+        }
+        const delta_max = (F * Math.pow(a, 2) / (6 * EI)) * (3 * L - a);
+
+        setRes('res2-delta', -delta, 'delta');
+        setRes('res2-delta-max', delta_max, 'delta');
+        setRes('res2-slope', -theta, 'slope');
+        setRes('res2-shear', V, 'shear', true);
+        setRes('res2-moment', M, 'moment');
+    }
+
+    function calculateUDL() {
+        const w = getBase('inp3-w', 'w');
+        const L = getBase('inp3-l', 'l');
+        let x = getBase('inp3-x', 'x');
+        const E = getBase('inp3-e', 'e');
+        const I = getBase('inp3-i', 'i');
+
+        if (x > L) { x = L; setBound('inp3-x', x); }
+        if (x < 0) { x = 0; setBound('inp3-x', 0); }
+
+        const EI = E * I;
+        const delta = (w * Math.pow(x, 2) / (24 * EI)) * (6 * Math.pow(L, 2) - 4 * L * x + Math.pow(x, 2));
+        const delta_max = (w * Math.pow(L, 4)) / (8 * EI); 
+        const theta = (w * x / (6 * EI)) * (3 * Math.pow(L, 2) - 3 * L * x + Math.pow(x, 2));
+        const theta_max = (w * Math.pow(L, 3)) / (6 * EI);
+        const V = w * (L - x);
+        const V_max = w * L;
+        const M = -1 * w * Math.pow(L - x, 2) / 2;
+        const M_max = -1 * w * Math.pow(L, 2) / 2;
+
+        setRes('res3-delta', -delta, 'delta');
+        setRes('res3-delta-max', delta_max, 'delta');
+        setRes('res3-slope', -theta, 'slope');
+        setRes('res3-slope-max', theta_max, 'slope');
+        setRes('res3-shear', V, 'shear', true);
+        setRes('res3-shear-max', V_max, 'shear', true);
+        setRes('res3-moment', M, 'moment');
+        setRes('res3-moment-max', M_max, 'moment');
+    }
+
+    function calculateTri() {
+        const w1 = getBase('inp4-w1', 'w');
+        const L = getBase('inp4-l', 'l');
+        let x = getBase('inp4-x', 'x');
+        const E = getBase('inp4-e', 'e');
+        const I = getBase('inp4-i', 'i');
+
+        if (x > L) { x = L; setBound('inp4-x', x); }
+        if (x < 0) { x = 0; setBound('inp4-x', 0); }
+
+        const EI = E * I;
+        const delta = (w1 * Math.pow(x, 2) / (120 * L * EI)) * (10 * Math.pow(L, 3) - 10 * Math.pow(L, 2) * x + 5 * L * Math.pow(x, 2) - Math.pow(x, 3));
+        const delta_max = (w1 * Math.pow(L, 4)) / (30 * EI); 
+        const theta = (w1 * x / (24 * L * EI)) * (4 * Math.pow(L, 3) - 6 * Math.pow(L, 2) * x + 4 * L * Math.pow(x, 2) - Math.pow(x, 3));
+        const theta_max = (w1 * Math.pow(L, 3)) / (24 * EI);
+        const V = (w1 / (2 * L)) * Math.pow(L - x, 2);
+        const V_max = (w1 * L) / 2;
+        const M = -1 * (w1 / (6 * L)) * Math.pow(L - x, 3);
+        const M_max = -1 * (w1 * Math.pow(L, 2)) / 6;
+
+        setRes('res4-delta', -delta, 'delta');
+        setRes('res4-delta-max', delta_max, 'delta');
+        setRes('res4-slope', -theta, 'slope');
+        setRes('res4-slope-max', theta_max, 'slope');
+        setRes('res4-shear', V, 'shear', true);
+        setRes('res4-shear-max', V_max, 'shear', true);
+        setRes('res4-moment', M, 'moment');
+        setRes('res4-moment-max', M_max, 'moment');
+    }
+
+    function calculateMoment() {
+        const M0 = getBase('inp5-m0', 'm0');
+        const L = getBase('inp5-l', 'l');
+        let x = getBase('inp5-x', 'x');
+        const E = getBase('inp5-e', 'e');
+        const I = getBase('inp5-i', 'i');
+
+        if (x > L) { x = L; setBound('inp5-x', x); }
+        if (x < 0) { x = 0; setBound('inp5-x', 0); }
+
+        const EI = E * I;
+        const delta = (M0 * Math.pow(x, 2)) / (2 * EI);
+        const delta_max = (M0 * Math.pow(L, 2)) / (2 * EI); 
+        const theta = (M0 * x) / EI;
+        const theta_max = (M0 * L) / EI;
+        const V = 0;
+        const M = -M0;
+
+        setRes('res5-delta', -delta, 'delta');
+        setRes('res5-delta-max', delta_max, 'delta');
+        setRes('res5-slope', -theta, 'slope');
+        setRes('res5-slope-max', theta_max, 'slope');
+        setRes('res5-shear', V, 'shear');
+        setRes('res5-moment', M, 'moment');
+    }
+
+    function calculateSS() {
+        const F = getBase('inp6-f', 'f');
+        const L = getBase('inp6-l', 'l');
+        let a = getBase('inp6-a', 'a');
+        let x = getBase('inp6-x', 'x');
+        const E = getBase('inp6-e', 'e');
+        const I = getBase('inp6-i', 'i');
+
+        if (a > L) { a = L; setBound('inp6-a', a); }
+        if (a < 0) { a = 0; setBound('inp6-a', 0); }
+        if (x > L) { x = L; setBound('inp6-x', x); }
+        if (x < 0) { x = 0; setBound('inp6-x', 0); }
+
+        const b = L - a;
+        const EI = E * I;
+        let delta, theta, V, M;
+
+        if (x <= a) {
+            delta = -1 * (F * b * x / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(b, 2) - Math.pow(x, 2));
+            theta = -1 * (F * b / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(b, 2) - 3 * Math.pow(x, 2));
+            V = (F * b) / L;
+            M = (F * b * x) / L;
+        } else {
+            let x_mirror = L - x;
+            delta = -1 * (F * a * x_mirror / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(a, 2) - Math.pow(x_mirror, 2));
+            theta = (F * a / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(a, 2) - 3 * Math.pow(x_mirror, 2));
+            V = -1 * (F * a) / L;
+            M = (F * a * x_mirror) / L;
+        }
+
+        let delta_max = a >= b 
+            ? (F * b * Math.pow(Math.pow(L, 2) - Math.pow(b, 2), 1.5)) / (9 * Math.sqrt(3) * L * EI)
+            : (F * a * Math.pow(Math.pow(L, 2) - Math.pow(a, 2), 1.5)) / (9 * Math.sqrt(3) * L * EI);
+
+        const theta1 = -1 * (F * a * b * (L + b)) / (6 * L * EI);
+        const theta2 = (F * a * b * (L + a)) / (6 * L * EI);
+        const V1 = (F * b) / L;
+        const V2 = -1 * (F * a) / L;
+        const M_max = (F * a * b) / L;
+
+        setRes('res6-delta', -delta, 'delta');
+        setRes('res6-delta-max', delta_max, 'delta');
+        setRes('res6-slope', -theta, 'slope');
+        setRes('res6-slope1', theta1, 'slope');
+        setRes('res6-slope2', theta2, 'slope', true);
+        setRes('res6-shear-v', V, 'shear', true);
+        setRes('res6-shear-v1', V1, 'shear', true);
+        setRes('res6-shear-v2', V2, 'shear');
+        setRes('res6-moment', M, 'moment', true);
+        setRes('res6-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateSSCenter() {
+        const F = getBase('inp7-f', 'f');
+        const L = getBase('inp7-l', 'l');
+        let x = getBase('inp7-x', 'x');
+        const E = getBase('inp7-e', 'e');
+        const I = getBase('inp7-i', 'i');
+
+        if (x > L) { x = L; setBound('inp7-x', x); }
+        if (x < 0) { x = 0; setBound('inp7-x', 0); }
+
+        const EI = E * I;
+        const halfL = L / 2;
+        let delta, theta, V, M;
+
+        if (x <= halfL) {
+            delta = -1 * (F * x / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x, 2));
+            theta = -1 * (F / (16 * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x, 2));
+            V = F / 2;
+            M = (F * x) / 2;
+        } else {
+            let x_mirror = L - x;
+            delta = -1 * (F * x_mirror / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
+            theta = (F / (16 * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
+            V = -F / 2;
+            M = (F * x_mirror) / 2;
+        }
+
+        const delta_max = (F * Math.pow(L, 3)) / (48 * EI);
+        const theta1 = -1 * (F * Math.pow(L, 2)) / (16 * EI);
+        const theta2 = (F * Math.pow(L, 2)) / (16 * EI);
+        const V1 = F / 2;
+        const V2 = -F / 2;
+        const M_max = (F * L) / 4;
+
+        setRes('res7-delta', -delta, 'delta');
+        setRes('res7-delta-max', delta_max, 'delta');
+        setRes('res7-slope', -theta, 'slope');
+        setRes('res7-slope1', theta1, 'slope');
+        setRes('res7-slope2', theta2, 'slope', true);
+        setRes('res7-shear-v', V, 'shear', true);
+        setRes('res7-shear-v1', V1, 'shear', true);
+        setRes('res7-shear-v2', V2, 'shear');
+        setRes('res7-moment', M, 'moment', true);
+        setRes('res7-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateSS2Loads() {
+        const F = getBase('inp8-f', 'f');
+        const L = getBase('inp8-l', 'l');
+        let a = getBase('inp8-a', 'a');
+        let x = getBase('inp8-x', 'x');
+        const E = getBase('inp8-e', 'e');
+        const I = getBase('inp8-i', 'i');
+
+        if (a > L / 2) { a = L / 2; setBound('inp8-a', a); }
+        if (a < 0) { a = 0; setBound('inp8-a', 0); }
+        if (x > L) { x = L; setBound('inp8-x', x); }
+        if (x < 0) { x = 0; setBound('inp8-x', 0); }
+
+        const EI = E * I;
+        let delta, theta, V, M;
+
+        if (x <= a) {
+            delta = (F * x / (6 * EI)) * (3 * a * L - 3 * Math.pow(a, 2) - Math.pow(x, 2));
+            theta = -1 * (F / (2 * EI)) * (a * L - Math.pow(a, 2) - Math.pow(x, 2));
+            V = F;
+            M = F * x;
+        } else if (x <= L - a) {
+            delta = (F * a / (6 * EI)) * (3 * L * x - 3 * Math.pow(x, 2) - Math.pow(a, 2));
+            theta = -1 * (F * a / (2 * EI)) * (L - 2 * x);
+            V = 0;
+            M = F * a;
+        } else {
+            let x_mirror = L - x;
+            delta = (F * x_mirror / (6 * EI)) * (3 * a * L - 3 * Math.pow(a, 2) - Math.pow(x_mirror, 2));
+            theta = (F / (2 * EI)) * (a * L - Math.pow(a, 2) - Math.pow(x_mirror, 2)); 
+            V = -F;
+            M = F * x_mirror;
+        }
+
+        const delta_max = (F * a / (24 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(a, 2));
+        const theta1 = -1 * (F * a * (L - a)) / (2 * EI);
+        const theta2 = (F * a * (L - a)) / (2 * EI);
+        const V1 = F;
+        const V2 = -F;
+        const M_max = F * a;
+
+        setRes('res8-delta', -delta, 'delta'); // Assuming positive math delta translates to negative physical drop
+        setRes('res8-delta-max', delta_max, 'delta');
+        setRes('res8-slope', -theta, 'slope');
+        setRes('res8-slope1', theta1, 'slope');
+        setRes('res8-slope2', theta2, 'slope', true);
+        setRes('res8-shear-v', V, 'shear', true);
+        setRes('res8-shear-v1', V1, 'shear', true);
+        setRes('res8-shear-v2', V2, 'shear');
+        setRes('res8-moment', M, 'moment', true);
+        setRes('res8-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateSSUDL() {
+        const w = getBase('inp9-w', 'w');
+        const L = getBase('inp9-l', 'l');
+        let x = getBase('inp9-x', 'x');
+        const E = getBase('inp9-e', 'e');
+        const I = getBase('inp9-i', 'i');
+
+        if (x > L) { x = L; setBound('inp9-x', x); }
+        if (x < 0) { x = 0; setBound('inp9-x', 0); }
+
+        const EI = E * I;
+        const delta = -1 * (w * x / (24 * EI)) * (Math.pow(L, 3) - 2 * L * Math.pow(x, 2) + Math.pow(x, 3));
+        const delta_max = (5 * w * Math.pow(L, 4)) / (384 * EI);
+        const theta = -1 * (w / (24 * EI)) * (Math.pow(L, 3) - 6 * L * Math.pow(x, 2) + 4 * Math.pow(x, 3));
+        const theta1 = -1 * (w * Math.pow(L, 3)) / (24 * EI);
+        const theta2 = (w * Math.pow(L, 3)) / (24 * EI);
+        const V = w * (L / 2 - x);
+        const V1 = (w * L) / 2;
+        const V2 = -1 * (w * L) / 2;
+        const M = (w * x / 2) * (L - x);
+        const M_max = (w * Math.pow(L, 2)) / 8;
+
+        setRes('res9-delta', delta, 'delta');
+        setRes('res9-delta-max', delta_max, 'delta');
+        setRes('res9-slope', theta, 'slope');
+        setRes('res9-slope1', theta1, 'slope');
+        setRes('res9-slope2', theta2, 'slope', true);
+        setRes('res9-shear-v', V, 'shear', true);
+        setRes('res9-shear-v1', V1, 'shear', true);
+        setRes('res9-shear-v2', V2, 'shear');
+        setRes('res9-moment', M, 'moment', true);
+        setRes('res9-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateSSMoments() {
+        const M0 = getBase('inp10-m0', 'm0');
+        const L = getBase('inp10-l', 'l');
+        let x = getBase('inp10-x', 'x');
+        const E = getBase('inp10-e', 'e');
+        const I = getBase('inp10-i', 'i');
+
+        if (x > L) { x = L; setBound('inp10-x', x); }
+        if (x < 0) { x = 0; setBound('inp10-x', 0); }
+
+        const EI = E * I;
+        const delta = -1 * (M0 * x / (2 * EI)) * (L - x);
+        const delta_max = (M0 * Math.pow(L, 2)) / (8 * EI); 
+        const theta = -1 * (M0 / (2 * EI)) * (L - 2 * x);
+        const theta1 = -1 * (M0 * L) / (2 * EI);
+        const theta2 = (M0 * L) / (2 * EI);
+        const V = 0;
+        const M = M0;
+
+        setRes('res10-delta', delta, 'delta');
+        setRes('res10-delta-max', delta_max, 'delta');
+        setRes('res10-slope', theta, 'slope');
+        setRes('res10-slope1', theta1, 'slope');
+        setRes('res10-slope2', theta2, 'slope', true);
+        setRes('res10-shear', V, 'shear');
+        setRes('res10-moment', M, 'moment');
+    }
+
+    function calculateSSOneMoment() {
+        const M0 = getBase('inp11-m0', 'm0');
+        const L = getBase('inp11-l', 'l');
+        let x = getBase('inp11-x', 'x');
+        const E = getBase('inp11-e', 'e');
+        const I = getBase('inp11-i', 'i');
+
+        if (x > L) { x = L; setBound('inp11-x', x); }
+        if (x < 0) { x = 0; setBound('inp11-x', 0); }
+
+        const EI = E * I;
+        const delta = -1 * (M0 * x / (6 * L * EI)) * (2 * Math.pow(L, 2) - 3 * L * x + Math.pow(x, 2));
+        const delta_max = (M0 * Math.pow(L, 2)) / (9 * Math.sqrt(3) * EI); 
+        const theta = -1 * (M0 / (6 * L * EI)) * (2 * Math.pow(L, 2) - 6 * L * x + 3 * Math.pow(x, 2));
+        const theta1 = -1 * (M0 * L) / (3 * EI);
+        const theta2 = (M0 * L) / (6 * EI);
+        const V = -1 * M0 / L;
+        const M = M0 * (1 - x / L);
+        const M_max = M0;
+
+        setRes('res11-delta', delta, 'delta');
+        setRes('res11-delta-max', delta_max, 'delta');
+        setRes('res11-slope', theta, 'slope');
+        setRes('res11-slope1', theta1, 'slope');
+        setRes('res11-slope2', theta2, 'slope', true);
+        setRes('res11-shear', V, 'shear');
+        setRes('res11-moment', M, 'moment', true);
+        setRes('res11-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateSSCenterMoment() {
+        const M0 = getBase('inp12-m0', 'm0');
+        const L = getBase('inp12-l', 'l');
+        let x = getBase('inp12-x', 'x');
+        const E = getBase('inp12-e', 'e');
+        const I = getBase('inp12-i', 'i');
+
+        if (x > L) { x = L; setBound('inp12-x', x); }
+        if (x < 0) { x = 0; setBound('inp12-x', 0); }
+
+        const EI = E * I;
+        const halfL = L / 2;
+        let delta, theta, V, M;
+
+        if (x <= halfL) {
+            delta = -1 * (M0 * x / (24 * L * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x, 2));
+            theta = -1 * (M0 / (24 * L * EI)) * (Math.pow(L, 2) - 12 * Math.pow(x, 2));
+            V = M0 / L;
+            M = (M0 * x) / L;
+        } else {
+            let x_mirror = L - x;
+            delta = (M0 * x_mirror / (24 * L * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
+            theta = -1 * (M0 / (24 * L * EI)) * (Math.pow(L, 2) - 12 * Math.pow(x_mirror, 2));
+            V = M0 / L;
+            M = -1 * (M0 * x_mirror) / L;
+        }
+
+        const theta1 = -1 * (M0 * L) / (24 * EI);
+        const theta2 = -1 * (M0 * L) / (24 * EI);
+        const M_max = M0 / 2;
+
+        setRes('res12-delta', delta, 'delta');
+        setRes('res12-slope', theta, 'slope');
+        setRes('res12-slope1', theta1, 'slope');
+        setRes('res12-slope2', theta2, 'slope');
+        setRes('res12-shear', V, 'shear', true);
+        setRes('res12-moment', M, 'moment', true);
+        setRes('res12-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateFFCenterLoad() {
+        const F = getBase('inp13-f', 'f');
+        const L = getBase('inp13-l', 'l');
+        let x = getBase('inp13-x', 'x');
+        const E = getBase('inp13-e', 'e');
+        const I = getBase('inp13-i', 'i');
+
+        if (x > L) { x = L; setBound('inp13-x', x); }
+        if (x < 0) { x = 0; setBound('inp13-x', 0); }
+
+        const EI = E * I;
+        const halfL = L / 2;
+        let delta, V, M;
+
+        if (x <= halfL) {
+            delta = -1 * (F * Math.pow(x, 2) / (48 * EI)) * (3 * L - 4 * x);
+            V = F / 2;
+            M = (F * (4 * x - L)) / 8;
+        } else {
+            let x_mirror = L - x;
+            delta = -1 * (F * Math.pow(x_mirror, 2) / (48 * EI)) * (3 * L - 4 * x_mirror);
+            V = -F / 2;
+            M = (F * (4 * x_mirror - L)) / 8;
+        }
+
+        const delta_max = (F * Math.pow(L, 3)) / (192 * EI);
+        const V1 = F / 2;
+        const V2 = -F / 2;
+        const M1 = -1 * (F * L) / 8; 
+        const M2 = (F * L) / 8;
+
+        setRes('res13-delta', delta, 'delta');
+        setRes('res13-delta-max', delta_max, 'delta');
+        setRes('res13-shear', V, 'shear', true);
+        setRes('res13-shear-v1', V1, 'shear', true);
+        setRes('res13-shear-v2', V2, 'shear');
+        setRes('res13-moment', M, 'moment', true);
+        setRes('res13-moment-m1', M1, 'moment');
+        setRes('res13-moment-m2', M2, 'moment', true);
+    }
+
+    function calculateFFUDL() {
+        const w = getBase('inp14-w', 'w');
+        const L = getBase('inp14-l', 'l');
+        let x = getBase('inp14-x', 'x');
+        const E = getBase('inp14-e', 'e');
+        const I = getBase('inp14-i', 'i');
+
+        if (x > L) { x = L; setBound('inp14-x', x); }
+        if (x < 0) { x = 0; setBound('inp14-x', 0); }
+
+        const EI = E * I;
+        const delta = -1 * (w * Math.pow(x, 2) / (24 * EI)) * Math.pow(L - x, 2);
+        const delta_max = (w * Math.pow(L, 4)) / (384 * EI);
+        const V = w * (L / 2 - x);
+        const V1 = (w * L) / 2;
+        const V2 = -1 * (w * L) / 2;
+        const M = (w / 12) * (6 * L * x - 6 * Math.pow(x, 2) - Math.pow(L, 2));
+        const M1 = -1 * (w * Math.pow(L, 2)) / 12; 
+        const M2 = (w * Math.pow(L, 2)) / 24;
+
+        setRes('res14-delta', delta, 'delta');
+        setRes('res14-delta-max', delta_max, 'delta');
+        setRes('res14-shear', V, 'shear', true);
+        setRes('res14-shear-v1', V1, 'shear', true);
+        setRes('res14-shear-v2', V2, 'shear');
+        setRes('res14-moment', M, 'moment', true);
+        setRes('res14-moment-m1', M1, 'moment');
+        setRes('res14-moment-m2', M2, 'moment', true);
+    }
+
+    function calculateSSCombined() {
+        const F = getBase('inp15-f', 'f');
+        const w = getBase('inp15-w', 'w');
+        const L = getBase('inp15-l', 'l');
+        let x = getBase('inp15-x', 'x');
+        const E = getBase('inp15-e', 'e');
+        const I = getBase('inp15-i', 'i');
+
+        if (x > L) { x = L; setBound('inp15-x', x); }
+        if (x < 0) { x = 0; setBound('inp15-x', 0); }
+
+        const EI = E * I;
+        const halfL = L / 2;
+        
+        let delta, V, M;
+
+        if (x <= halfL) {
+            let delta_udl = (w * x / (24 * EI)) * (Math.pow(L, 3) - 2 * L * Math.pow(x, 2) + Math.pow(x, 3));
+            let delta_pl = (F * x / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x, 2));
+            delta = -1 * (delta_udl + delta_pl);
+
+            V = w * (L / 2 - x) + F / 2;
+            M = (w * x / 2) * (L - x) + (F * x) / 2;
+        } else {
+            let x_mirror = L - x;
+            let delta_udl = (w * x_mirror / (24 * EI)) * (Math.pow(L, 3) - 2 * L * Math.pow(x_mirror, 2) + Math.pow(x_mirror, 3));
+            let delta_pl = (F * x_mirror / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
+            delta = -1 * (delta_udl + delta_pl);
+
+            V = w * (L / 2 - x) - F / 2; 
+            M = (w * x_mirror / 2) * (L - x_mirror) + (F * x_mirror) / 2;
+        }
+
+        const delta_max = (5 * w * Math.pow(L, 4)) / (384 * EI) + (F * Math.pow(L, 3)) / (48 * EI);
+        const V_max = (w * L) / 2 + F / 2;
+        const M_max = (w * Math.pow(L, 2)) / 8 + (F * L) / 4;
+
+        setRes('res15-delta', delta, 'delta');
+        setRes('res15-delta-max', delta_max, 'delta');
+        setRes('res15-shear-max', V_max, 'shear', true);
+        setRes('res15-moment-max', M_max, 'moment', true);
+    }
+
+    function calculateAll() {
+        calculate(); calculateInt(); calculateUDL(); calculateTri(); calculateMoment(); 
+        calculateSS(); calculateSSCenter(); calculateSS2Loads(); calculateSSUDL(); 
+        calculateSSMoments(); calculateSSOneMoment(); calculateSSCenterMoment(); 
+        calculateFFCenterLoad(); calculateFFUDL(); calculateSSCombined();
+    }
+
+    // Trigger DOM Setup prior to MathJax finalizing on load
+    setupUnitsDOM();
+
+    window.onload = function() {
+        calculateAll();
+    };
+</script>
+</body>
+</html>
