@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,8 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cantilever Beam Calculator</title>
 <!-- MathJax for rendering equations identically to the textbook image -->
-<script src="?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
     body { 
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -155,6 +154,15 @@
             width: 100%;
         }
     }
+
+    /* --- Inline math (MathJax-free) --- */
+    .frac { display:inline-flex; flex-direction:column; text-align:center; vertical-align:middle; margin:0 .18em; line-height:1.05; }
+    .frac > .fn { border-bottom:1px solid currentColor; padding:0 .35em; }
+    .frac > .fd { padding:0 .35em; }
+    .sqrt { white-space:nowrap; }
+    .radicand { border-top:1px solid currentColor; padding:0 .15em; margin-left:1px; }
+    .formula sup, .result sup, .formula sub, .result sub { font-size:.72em; }
+    .formula { min-height:34px; line-height:2.0; }
 </style>
 <!-- codex-professional-embed-layout-v1 -->
 <style>
@@ -213,13 +221,15 @@
     <div style="margin-bottom: 15px;">
         <label for="unit-select" style="font-weight: 500; font-size: 14px; margin-right: 8px;">System of Units:</label>
         <select id="unit-select" onchange="changeUnits()" style="padding: 6px 10px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; background-color: #f9f9f9; outline: none; cursor: pointer;">
-            <option value="metric_n_m">Metric Standard (N, m, Pa, m⁴)</option>
-            <option value="metric_kn_m">Metric Structural (kN, m, GPa, cm⁴)</option>
+            <option value="si_n_mm">N–mm (N, mm, MPa, mm⁴)</option>
+            <option value="si_kn_mm">kN–mm (kN, mm, GPa, mm⁴)</option>
             <option value="us_lbf_in">US Mechanical (lbf, in, psi, in⁴)</option>
             <option value="us_kip_ft">US Structural (kip, ft, ksi, in⁴)</option>
         </select>
     </div>
 </div>
+
+<div style="max-width:950px;font-size:12px;color:#555;margin:-4px 0 12px;line-height:1.5;"><strong>Sign convention:</strong> deflection δ negative downward &nbsp;·&nbsp; slope θ = dδ/dx in radians &nbsp;·&nbsp; bending moment sagging positive, hogging negative. Each result is evaluated at position x; maxima are the governing values.</div>
 
 <div class="tab">
     <button class="tablinks active" onclick="openTab(event, 'EndLoad')">End Load</button>
@@ -252,19 +262,19 @@
             </div>
             <div class="input-group">
                 <label>Length L (m)</label>
-                <input type="number" id="inp-l" value="5" oninput="calculate()">
+                <input type="number" id="inp-l" value="5000" oninput="calculate()">
             </div>
             <div class="input-group">
                 <label>Position x (m)</label>
-                <input type="number" id="inp-x" value="2.5" oninput="calculate()" step="0.1">
+                <input type="number" id="inp-x" value="2500" oninput="calculate()" step="0.1">
             </div>
             <div class="input-group">
                 <label>Modulus E (Pa)</label>
-                <input type="number" id="inp-e" value="200000000000" oninput="calculate()">
+                <input type="number" id="inp-e" value="200000" oninput="calculate()">
             </div>
             <div class="input-group">
                 <label>Inertia I (m^4)</label>
-                <input type="number" id="inp-i" value="0.0001" oninput="calculate()">
+                <input type="number" id="inp-i" value="100000000" oninput="calculate()">
             </div>
         </div>
     </div>
@@ -312,26 +322,26 @@
     <!-- Right Column: Formulas & Live Results -->
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{Fx^2}{6EI}(3L - x) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{FL^3}{3EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fx<sup>2</sup></span><span class="fd">6EI</span></span>(3L − x) </div>
+        <div class="result">↳  δ =  <span id="res-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">FL<sup>3</sup></span><span class="fd">3EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{Fx}{2EI}(2L - x) \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res-slope">0</span> rad</div>
-        <div class="formula">\( \theta_{max} = \frac{FL^2}{2EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \theta_{max} = \) <span id="res-slope-max">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">Fx</span><span class="fd">2EI</span></span>(2L − x) </div>
+        <div class="result">↳  θ =  <span id="res-slope">0</span> <span class="unit-slope">rad</span></div>
+        <div class="formula"> θ<sub>max</sub> = −<span class="frac"><span class="fn">FL<sup>2</sup></span><span class="fd">2EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  θ<sub>max</sub> =  <span id="res-slope-max">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = +F \)</div>
-        <div class="result">↳ \( V = \) <span id="res-shear">0</span> N</div>
+        <div class="formula"> V = +F </div>
+        <div class="result">↳  V =  <span id="res-shear">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M = -F(L - x) \)</div>
-        <div class="result">↳ \( M = \) <span id="res-moment">0</span> N·m</div>
-        <div class="formula">\( M_{max} = -FL \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res-moment-max">0</span> N·m</div>
+        <div class="formula"> M = −F(L − x) </div>
+        <div class="result">↳  M =  <span id="res-moment">0</span> <span class="unit-moment">N·mm</span></div>
+        <div class="formula"> M<sub>max</sub> = −FL &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -342,11 +352,11 @@
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
             <div class="input-group"><label>Force F (N)</label><input type="number" id="inp2-f" value="1000" oninput="calculateInt()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp2-l" value="5" oninput="calculateInt()"></div>
-            <div class="input-group"><label>Load Pos a (m)</label><input type="number" id="inp2-a" value="3" oninput="calculateInt()" step="0.1"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp2-x" value="2" oninput="calculateInt()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp2-e" value="200000000000" oninput="calculateInt()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp2-i" value="0.0001" oninput="calculateInt()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp2-l" value="5000" oninput="calculateInt()"></div>
+            <div class="input-group"><label>Load Pos a (m)</label><input type="number" id="inp2-a" value="3000" oninput="calculateInt()" step="0.1"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp2-x" value="2000" oninput="calculateInt()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp2-e" value="200000" oninput="calculateInt()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp2-i" value="100000000" oninput="calculateInt()"></div>
         </div>
     </div>
     
@@ -373,26 +383,26 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{Fx^2}{6EI}(3a - x) \quad (0 \le x \le a) \)</div>
-        <div class="formula">\( \delta = -\frac{Fa^2}{6EI}(3x - a) \quad (a \le x \le L) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res2-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{Fa^2}{6EI}(3L - a) \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res2-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fx<sup>2</sup></span><span class="fd">6EI</span></span>(3a − x) &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fa<sup>2</sup></span><span class="fd">6EI</span></span>(3x − a) &nbsp;&nbsp; (a  ≤  x  ≤  L) </div>
+        <div class="result">↳  δ =  <span id="res2-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">Fa<sup>2</sup></span><span class="fd">6EI</span></span>(3L − a) &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res2-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{Fx}{2EI}(2a - x) \quad (0 \le x \le a) \)</div>
-        <div class="formula">\( \theta = -\frac{Fa^2}{2EI} \quad (a \le x \le L) \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res2-slope">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">Fx</span><span class="fd">2EI</span></span>(2a − x) &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">Fa<sup>2</sup></span><span class="fd">2EI</span></span> &nbsp;&nbsp; (a  ≤  x  ≤  L) </div>
+        <div class="result">↳  θ =  <span id="res2-slope">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = +F \quad (0 \le x \le a) \)</div>
-        <div class="formula">\( V = 0 \quad (a \le x \le L) \)</div>
-        <div class="result">↳ \( V = \) <span id="res2-shear">0</span> N</div>
+        <div class="formula"> V = +F &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="formula"> V = 0 &nbsp;&nbsp; (a  ≤  x  ≤  L) </div>
+        <div class="result">↳  V =  <span id="res2-shear">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M = -F(a - x) \quad (0 \le x \le a) \)</div>
-        <div class="formula">\( M = 0 \quad (a \le x \le L) \)</div>
-        <div class="result">↳ \( M = \) <span id="res2-moment">0</span> N·m</div>
+        <div class="formula"> M = −F(a − x) &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="formula"> M = 0 &nbsp;&nbsp; (a  ≤  x  ≤  L) </div>
+        <div class="result">↳  M =  <span id="res2-moment">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -402,11 +412,11 @@
         <p>Cantilever, Uniform Distributed Load</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp3-w" value="500" oninput="calculateUDL()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp3-l" value="5" oninput="calculateUDL()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp3-x" value="2.5" oninput="calculateUDL()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp3-e" value="200000000000" oninput="calculateUDL()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp3-i" value="0.0001" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp3-w" value="0.5" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp3-l" value="5000" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp3-x" value="2500" oninput="calculateUDL()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp3-e" value="200000" oninput="calculateUDL()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp3-i" value="100000000" oninput="calculateUDL()"></div>
         </div>
     </div>
     
@@ -431,28 +441,28 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{wx^2}{24EI}(6L^2 - 4Lx + x^2) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res3-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{wL^4}{8EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res3-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">wx<sup>2</sup></span><span class="fd">24EI</span></span>(6L<sup>2</sup> − 4Lx + x<sup>2</sup>) </div>
+        <div class="result">↳  δ =  <span id="res3-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">wL<sup>4</sup></span><span class="fd">8EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res3-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{wx}{6EI}(3L^2 - 3Lx + x^2) \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res3-slope">0</span> rad</div>
-        <div class="formula">\( \theta_{max} = \frac{wL^3}{6EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \theta_{max} = \) <span id="res3-slope-max">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">wx</span><span class="fd">6EI</span></span>(3L<sup>2</sup> − 3Lx + x<sup>2</sup>) </div>
+        <div class="result">↳  θ =  <span id="res3-slope">0</span> <span class="unit-slope">rad</span></div>
+        <div class="formula"> θ<sub>max</sub> = −<span class="frac"><span class="fn">wL<sup>3</sup></span><span class="fd">6EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  θ<sub>max</sub> =  <span id="res3-slope-max">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = +w(L - x) \)</div>
-        <div class="result">↳ \( V = \) <span id="res3-shear">0</span> N</div>
-        <div class="formula">\( V_{max} = +wL \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( V_{max} = \) <span id="res3-shear-max">0</span> N</div>
+        <div class="formula"> V = +w(L − x) </div>
+        <div class="result">↳  V =  <span id="res3-shear">0</span> <span class="unit-shear">N</span></div>
+        <div class="formula"> V<sub>max</sub> = +wL &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  V<sub>max</sub> =  <span id="res3-shear-max">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M = -w(L - x)^2 / 2 \)</div>
-        <div class="result">↳ \( M = \) <span id="res3-moment">0</span> N·m</div>
-        <div class="formula">\( M_{max} = -wL^2 / 2 \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res3-moment-max">0</span> N·m</div>
+        <div class="formula"> M = −w(L − x)<sup>2</sup> / 2 </div>
+        <div class="result">↳  M =  <span id="res3-moment">0</span> <span class="unit-moment">N·mm</span></div>
+        <div class="formula"> M<sub>max</sub> = −wL<sup>2</sup> / 2 &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res3-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -462,11 +472,11 @@
         <p>Cantilever, Triangular Distributed Load</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Load w1 (N/m)</label><input type="number" id="inp4-w1" value="500" oninput="calculateTri()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp4-l" value="5" oninput="calculateTri()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp4-x" value="2.5" oninput="calculateTri()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp4-e" value="200000000000" oninput="calculateTri()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp4-i" value="0.0001" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Load w1 (N/m)</label><input type="number" id="inp4-w1" value="0.5" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp4-l" value="5000" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp4-x" value="2500" oninput="calculateTri()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp4-e" value="200000" oninput="calculateTri()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp4-i" value="100000000" oninput="calculateTri()"></div>
         </div>
     </div>
     
@@ -491,28 +501,28 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{w_1 x^2}{120LEI}(10L^3 - 10L^2x + 5Lx^2 - x^3) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res4-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{w_1 L^4}{30EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res4-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">w<sub>1</sub> x<sup>2</sup></span><span class="fd">120LEI</span></span>(10L<sup>3</sup> − 10L<sup>2</sup>x + 5Lx<sup>2</sup> − x<sup>3</sup>) </div>
+        <div class="result">↳  δ =  <span id="res4-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">w<sub>1</sub> L<sup>4</sup></span><span class="fd">30EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res4-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{w_1 x}{24LEI}(4L^3 - 6L^2x + 4Lx^2 - x^3) \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res4-slope">0</span> rad</div>
-        <div class="formula">\( \theta_{max} = \frac{w_1 L^3}{24EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \theta_{max} = \) <span id="res4-slope-max">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">w<sub>1</sub> x</span><span class="fd">24LEI</span></span>(4L<sup>3</sup> − 6L<sup>2</sup>x + 4Lx<sup>2</sup> − x<sup>3</sup>) </div>
+        <div class="result">↳  θ =  <span id="res4-slope">0</span> <span class="unit-slope">rad</span></div>
+        <div class="formula"> θ<sub>max</sub> = −<span class="frac"><span class="fn">w<sub>1</sub> L<sup>3</sup></span><span class="fd">24EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  θ<sub>max</sub> =  <span id="res4-slope-max">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = +w_1(L - x)^2 / (2L) \)</div>
-        <div class="result">↳ \( V = \) <span id="res4-shear">0</span> N</div>
-        <div class="formula">\( V_{max} = +w_1L / 2 \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( V_{max} = \) <span id="res4-shear-max">0</span> N</div>
+        <div class="formula"> V = +w<sub>1</sub>(L − x)<sup>2</sup> / (2L) </div>
+        <div class="result">↳  V =  <span id="res4-shear">0</span> <span class="unit-shear">N</span></div>
+        <div class="formula"> V<sub>max</sub> = +w<sub>1</sub>L / 2 &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  V<sub>max</sub> =  <span id="res4-shear-max">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M = -w_1(L - x)^3 / (6L) \)</div>
-        <div class="result">↳ \( M = \) <span id="res4-moment">0</span> N·m</div>
-        <div class="formula">\( M_{max} = -w_1L^2 / 6 \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res4-moment-max">0</span> N·m</div>
+        <div class="formula"> M = −w<sub>1</sub>(L − x)<sup>3</sup> / (6L) </div>
+        <div class="result">↳  M =  <span id="res4-moment">0</span> <span class="unit-moment">N·mm</span></div>
+        <div class="formula"> M<sub>max</sub> = −w<sub>1</sub>L<sup>2</sup> / 6 &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res4-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -522,11 +532,11 @@
         <p>Cantilever, End Moment</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp5-m0" value="5000" oninput="calculateMoment()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp5-l" value="5" oninput="calculateMoment()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp5-x" value="2.5" oninput="calculateMoment()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp5-e" value="200000000000" oninput="calculateMoment()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp5-i" value="0.0001" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp5-m0" value="5000000" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp5-l" value="5000" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp5-x" value="2500" oninput="calculateMoment()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp5-e" value="200000" oninput="calculateMoment()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp5-i" value="100000000" oninput="calculateMoment()"></div>
         </div>
     </div>
     
@@ -551,22 +561,22 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{M_0 x^2}{2EI} \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res5-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{M_0 L^2}{2EI} \quad @ \; x = L \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res5-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">M<sub>0</sub> x<sup>2</sup></span><span class="fd">2EI</span></span> </div>
+        <div class="result">↳  δ =  <span id="res5-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">M<sub>0</sub> L<sup>2</sup></span><span class="fd">2EI</span></span> &nbsp;&nbsp; @   x = L </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res5-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{M_0 x}{EI} \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res5-slope">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">M<sub>0</sub> x</span><span class="fd">EI</span></span> </div>
+        <div class="result">↳  θ =  <span id="res5-slope">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = 0 \)</div>
-        <div class="result">↳ \( V = \) <span id="res5-shear">0</span> N</div>
+        <div class="formula"> V = 0 </div>
+        <div class="result">↳  V =  <span id="res5-shear">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M = -M_0 \)</div>
-        <div class="result">↳ \( M = \) <span id="res5-moment">0</span> N·m</div>
+        <div class="formula"> M = −M<sub>0</sub> </div>
+        <div class="result">↳  M =  <span id="res5-moment">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -577,11 +587,11 @@
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
             <div class="input-group"><label>Force F (N)</label><input type="number" id="inp6-f" value="1000" oninput="calculateSS()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp6-l" value="5" oninput="calculateSS()"></div>
-            <div class="input-group"><label>Load Pos a (m)</label><input type="number" id="inp6-a" value="3" oninput="calculateSS()" step="0.1"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp6-x" value="2.5" oninput="calculateSS()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp6-e" value="200000000000" oninput="calculateSS()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp6-i" value="0.0001" oninput="calculateSS()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp6-l" value="5000" oninput="calculateSS()"></div>
+            <div class="input-group"><label>Load Pos a (m)</label><input type="number" id="inp6-a" value="3000" oninput="calculateSS()" step="0.1"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp6-x" value="2500" oninput="calculateSS()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp6-e" value="200000" oninput="calculateSS()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp6-i" value="100000000" oninput="calculateSS()"></div>
         </div>
     </div>
     
@@ -608,25 +618,27 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{Fbx}{6LEI}(L^2 - b^2 - x^2) \quad (0 \le x \le a) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res6-delta">0</span> m</div>
-        <div class="formula">For \( a \ge b \):</div>
-        <div class="formula">\( \delta_{max} = \frac{Fb(L^2 - b^2)^{3/2}}{9\sqrt{3}LEI} \quad @ \; x = \sqrt{\frac{L^2 - b^2}{3}} \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res6-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fbx</span><span class="fd">6LEI</span></span>(L<sup>2</sup> − b<sup>2</sup> − x<sup>2</sup>) &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="result">↳  δ =  <span id="res6-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula">For  a  ≥  b :</div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">Fb(L<sup>2</sup> − b<sup>2</sup>)<sup>3/2</sup></span><span class="fd">9√<span class="radicand">3</span>LEI</span></span> &nbsp;&nbsp; @   x = √<span class="radicand"><span class="frac"><span class="fn">L<sup>2</sup> − b<sup>2</sup></span><span class="fd">3</span></span></span> </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res6-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{Fb}{6LEI}(L^2 - b^2 - 3x^2) \quad (0 \le x \le a) \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res6-slope">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">Fb</span><span class="fd">6LEI</span></span>(L<sup>2</sup> − b<sup>2</sup> − 3x<sup>2</sup>) &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="result">↳  θ =  <span id="res6-slope">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_1 = +Fb / L \quad (0 \le x \le a) \)</div>
-        <div class="formula">\( V_2 = -Fa / L \quad (a \le x \le L) \)</div>
-        <div class="result">↳ \( V_1 = \) <span id="res6-shear-v1">0</span> N</div>
-        <div class="result">↳ \( V_2 = \) <span id="res6-shear-v2">0</span> N</div>
+        <div class="formula"> V<sub>1</sub> = +Fb / L &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="formula"> V<sub>2</sub> = −Fa / L &nbsp;&nbsp; (a  ≤  x  ≤  L) </div>
+        <div class="result">↳  V<sub>1</sub> =  <span id="res6-shear-v1">0</span> <span class="unit-shear">N</span></div>
+        <div class="result">↳  V<sub>2</sub> =  <span id="res6-shear-v2">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = +Fab / L \quad @ \; x = a \)</div>
-        <div class="result">↳ \( M = \) <span id="res6-moment">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = +Fab / L &nbsp;&nbsp; @   x = a </div>
+        <div class="result">↳  M =  <span id="res6-moment">0</span> <span class="unit-moment">N·mm</span></div>
+        <div class="formula"> M<sub>max</sub> = <span class="frac"><span class="fn">Fab</span><span class="fd">L</span></span> &nbsp;&nbsp; @   x = a </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res6-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -637,10 +649,10 @@
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
             <div class="input-group"><label>Force F (N)</label><input type="number" id="inp7-f" value="1000" oninput="calculateSSCenter()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp7-l" value="5" oninput="calculateSSCenter()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp7-x" value="2.5" oninput="calculateSSCenter()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp7-e" value="200000000000" oninput="calculateSSCenter()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp7-i" value="0.0001" oninput="calculateSSCenter()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp7-l" value="5000" oninput="calculateSSCenter()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp7-x" value="2500" oninput="calculateSSCenter()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp7-e" value="200000" oninput="calculateSSCenter()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp7-i" value="100000000" oninput="calculateSSCenter()"></div>
         </div>
     </div>
     
@@ -667,24 +679,24 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{Fx}{48EI}(3L^2 - 4x^2) \quad (0 \le x \le L/2) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res7-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{FL^3}{48EI} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res7-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fx</span><span class="fd">48EI</span></span>(3L<sup>2</sup> − 4x<sup>2</sup>) &nbsp;&nbsp; (0  ≤  x  ≤  L/2) </div>
+        <div class="result">↳  δ =  <span id="res7-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">FL<sup>3</sup></span><span class="fd">48EI</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res7-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Slope:</div>
-        <div class="formula">\( \theta = -\frac{F}{16EI}(L^2 - 4x^2) \quad (0 \le x \le L/2) \)</div>
-        <div class="result">↳ \( \theta = \) <span id="res7-slope">0</span> rad</div>
+        <div class="formula"> θ = −<span class="frac"><span class="fn">F</span><span class="fd">16EI</span></span>(L<sup>2</sup> − 4x<sup>2</sup>) &nbsp;&nbsp; (0  ≤  x  ≤  L/2) </div>
+        <div class="result">↳  θ =  <span id="res7-slope">0</span> <span class="unit-slope">rad</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_1 = +F / 2 \quad (0 \le x \le L/2) \)</div>
-        <div class="result">↳ \( V_1 = \) <span id="res7-shear-v1">0</span> N</div>
-        <div class="formula">\( V_2 = -F / 2 \quad (L/2 \le x \le L) \)</div>
-        <div class="result">↳ \( V_2 = \) <span id="res7-shear-v2">0</span> N</div>
+        <div class="formula"> V<sub>1</sub> = +F / 2 &nbsp;&nbsp; (0  ≤  x  ≤  L/2) </div>
+        <div class="result">↳  V<sub>1</sub> =  <span id="res7-shear-v1">0</span> <span class="unit-shear">N</span></div>
+        <div class="formula"> V<sub>2</sub> = −F / 2 &nbsp;&nbsp; (L/2  ≤  x  ≤  L) </div>
+        <div class="result">↳  V<sub>2</sub> =  <span id="res7-shear-v2">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = FL / 4 \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res7-moment-max">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = FL / 4 &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res7-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -695,11 +707,11 @@
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
             <div class="input-group"><label>Force F (each) (N)</label><input type="number" id="inp8-f" value="1000" oninput="calculateSS2Loads()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp8-l" value="5" oninput="calculateSS2Loads()"></div>
-            <div class="input-group"><label>Distance a (m)</label><input type="number" id="inp8-a" value="1.5" oninput="calculateSS2Loads()" step="0.1"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp8-x" value="2.5" oninput="calculateSS2Loads()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp8-e" value="200000000000" oninput="calculateSS2Loads()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp8-i" value="0.0001" oninput="calculateSS2Loads()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp8-l" value="5000" oninput="calculateSS2Loads()"></div>
+            <div class="input-group"><label>Distance a (m)</label><input type="number" id="inp8-a" value="1500" oninput="calculateSS2Loads()" step="0.1"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp8-x" value="2500" oninput="calculateSS2Loads()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp8-e" value="200000" oninput="calculateSS2Loads()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp8-i" value="100000000" oninput="calculateSS2Loads()"></div>
         </div>
     </div>
     
@@ -728,18 +740,18 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = \frac{Fx}{6EI}(3aL - 3a^2 - x^2) \quad (0 \le x \le a) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res8-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{Fa}{24EI}(3L^2 - 4a^2) \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res8-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fx</span><span class="fd">6EI</span></span>(3aL − 3a<sup>2</sup> − x<sup>2</sup>) &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="result">↳  δ =  <span id="res8-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">Fa</span><span class="fd">24EI</span></span>(3L<sup>2</sup> − 4a<sup>2</sup>) &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res8-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_1 = +F \quad (0 \le x \le a) \)</div>
-        <div class="result">↳ \( V_1 = \) <span id="res8-shear-v1">0</span> N</div>
+        <div class="formula"> V<sub>1</sub> = +F &nbsp;&nbsp; (0  ≤  x  ≤  a) </div>
+        <div class="result">↳  V<sub>1</sub> =  <span id="res8-shear-v1">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = Fa \quad (a \le x \le L-a) \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res8-moment-max">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = Fa &nbsp;&nbsp; (a  ≤  x  ≤  L−a) </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res8-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -749,11 +761,11 @@
         <p>Simply Supported, UDL</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp9-w" value="500" oninput="calculateSSUDL()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp9-l" value="5" oninput="calculateSSUDL()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp9-x" value="2.5" oninput="calculateSSUDL()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp9-e" value="200000000000" oninput="calculateSSUDL()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp9-i" value="0.0001" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp9-w" value="0.5" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp9-l" value="5000" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp9-x" value="2500" oninput="calculateSSUDL()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp9-e" value="200000" oninput="calculateSSUDL()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp9-i" value="100000000" oninput="calculateSSUDL()"></div>
         </div>
     </div>
     
@@ -780,18 +792,18 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{wx}{24EI}(L^3 - 2Lx^2 + x^3) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res9-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{5wL^4}{384EI} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res9-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">wx</span><span class="fd">24EI</span></span>(L<sup>3</sup> − 2Lx<sup>2</sup> + x<sup>3</sup>) </div>
+        <div class="result">↳  δ =  <span id="res9-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">5wL<sup>4</sup></span><span class="fd">384EI</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res9-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_1 = +wL/2 \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( V_1 = \) <span id="res9-shear-v1">0</span> N</div>
+        <div class="formula"> V<sub>1</sub> = +wL/2 &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  V<sub>1</sub> =  <span id="res9-shear-v1">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = wL^2 / 8 \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res9-moment-max">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = wL<sup>2</sup> / 8 &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res9-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -801,11 +813,11 @@
         <p>Simply Supported, Moments at Ends</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp10-m0" value="5000" oninput="calculateSSMoments()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp10-l" value="5" oninput="calculateSSMoments()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp10-x" value="2.5" oninput="calculateSSMoments()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp10-e" value="200000000000" oninput="calculateSSMoments()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp10-i" value="0.0001" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp10-m0" value="5000000" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp10-l" value="5000" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp10-x" value="2500" oninput="calculateSSMoments()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp10-e" value="200000" oninput="calculateSSMoments()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp10-i" value="100000000" oninput="calculateSSMoments()"></div>
         </div>
     </div>
     
@@ -832,18 +844,18 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{M_0 x}{2EI}(L - x) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res10-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{M_0 L^2}{8EI} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res10-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">M<sub>0</sub> x</span><span class="fd">2EI</span></span>(L − x) </div>
+        <div class="result">↳  δ =  <span id="res10-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">M<sub>0</sub> L<sup>2</sup></span><span class="fd">8EI</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res10-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = 0 \)</div>
-        <div class="result">↳ \( V = \) <span id="res10-shear">0</span> N</div>
+        <div class="formula"> V = 0 </div>
+        <div class="result">↳  V =  <span id="res10-shear">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M = M_0 \)</div>
-        <div class="result">↳ \( M = \) <span id="res10-moment">0</span> N·m</div>
+        <div class="formula"> M = M<sub>0</sub> </div>
+        <div class="result">↳  M =  <span id="res10-moment">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -853,11 +865,11 @@
         <p>Simply Supported, Moment at One Support</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp11-m0" value="5000" oninput="calculateSSOneMoment()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp11-l" value="5" oninput="calculateSSOneMoment()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp11-x" value="2.5" oninput="calculateSSOneMoment()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp11-e" value="200000000000" oninput="calculateSSOneMoment()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp11-i" value="0.0001" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp11-m0" value="5000000" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp11-l" value="5000" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp11-x" value="2500" oninput="calculateSSOneMoment()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp11-e" value="200000" oninput="calculateSSOneMoment()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp11-i" value="100000000" oninput="calculateSSOneMoment()"></div>
         </div>
     </div>
     
@@ -883,16 +895,16 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{M_0 x}{6LEI}(2L^2 - 3Lx + x^2) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res11-delta">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">M<sub>0</sub> x</span><span class="fd">6LEI</span></span>(2L<sup>2</sup> − 3Lx + x<sup>2</sup>) </div>
+        <div class="result">↳  δ =  <span id="res11-delta">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = -M_0 / L \)</div>
-        <div class="result">↳ \( V = \) <span id="res11-shear">0</span> N</div>
+        <div class="formula"> V = −M<sub>0</sub> / L </div>
+        <div class="result">↳  V =  <span id="res11-shear">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = M_0 \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res11-moment-max">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = M<sub>0</sub> &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res11-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -902,11 +914,11 @@
         <p>Simply Supported, Center Moment</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp12-m0" value="5000" oninput="calculateSSCenterMoment()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp12-l" value="5" oninput="calculateSSCenterMoment()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp12-x" value="2.5" oninput="calculateSSCenterMoment()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp12-e" value="200000000000" oninput="calculateSSCenterMoment()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp12-i" value="0.0001" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Moment M0 (N·m)</label><input type="number" id="inp12-m0" value="5000000" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp12-l" value="5000" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp12-x" value="2500" oninput="calculateSSCenterMoment()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp12-e" value="200000" oninput="calculateSSCenterMoment()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp12-i" value="100000000" oninput="calculateSSCenterMoment()"></div>
         </div>
     </div>
     
@@ -933,16 +945,16 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{M_0 x}{24LEI}(L^2 - 4x^2) \quad (0 \le x \le L/2) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res12-delta">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">M<sub>0</sub> x</span><span class="fd">24LEI</span></span>(L<sup>2</sup> − 4x<sup>2</sup>) &nbsp;&nbsp; (0  ≤  x  ≤  L/2) </div>
+        <div class="result">↳  δ =  <span id="res12-delta">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V = +M_0 / L \)</div>
-        <div class="result">↳ \( V = \) <span id="res12-shear">0</span> N</div>
+        <div class="formula"> V = +M<sub>0</sub> / L </div>
+        <div class="result">↳  V =  <span id="res12-shear">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = M_0 / 2 \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res12-moment-max">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = M<sub>0</sub> / 2 &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res12-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -953,10 +965,10 @@
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
             <div class="input-group"><label>Force F (N)</label><input type="number" id="inp13-f" value="1000" oninput="calculateFFCenterLoad()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp13-l" value="5" oninput="calculateFFCenterLoad()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp13-x" value="2.5" oninput="calculateFFCenterLoad()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp13-e" value="200000000000" oninput="calculateFFCenterLoad()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp13-i" value="0.0001" oninput="calculateFFCenterLoad()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp13-l" value="5000" oninput="calculateFFCenterLoad()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp13-x" value="2500" oninput="calculateFFCenterLoad()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp13-e" value="200000" oninput="calculateFFCenterLoad()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp13-i" value="100000000" oninput="calculateFFCenterLoad()"></div>
         </div>
     </div>
     
@@ -985,20 +997,20 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{Fx^2}{48EI}(3L - 4x) \quad (0 \le x \le L/2) \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res13-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{FL^3}{192EI} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res13-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">Fx<sup>2</sup></span><span class="fd">48EI</span></span>(3L − 4x) &nbsp;&nbsp; (0  ≤  x  ≤  L/2) </div>
+        <div class="result">↳  δ =  <span id="res13-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">FL<sup>3</sup></span><span class="fd">192EI</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res13-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_1 = +F / 2 \quad (0 \le x \le L/2) \)</div>
-        <div class="result">↳ \( V_1 = \) <span id="res13-shear-v1">0</span> N</div>
+        <div class="formula"> V<sub>1</sub> = +F / 2 &nbsp;&nbsp; (0  ≤  x  ≤  L/2) </div>
+        <div class="result">↳  V<sub>1</sub> =  <span id="res13-shear-v1">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_1 = M_3 = -FL / 8 \quad @ \; x = 0 \; \& \; x = L \)</div>
-        <div class="result">↳ \( M_1, M_3 = \) <span id="res13-moment-m1">0</span> N·m</div>
-        <div class="formula">\( M_2 = +FL / 8 \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( M_2 = \) <span id="res13-moment-m2">0</span> N·m</div>
+        <div class="formula"> M<sub>1</sub> = M<sub>3</sub> = −FL / 8 &nbsp;&nbsp; @   x = 0   &   x = L </div>
+        <div class="result">↳  M<sub>1</sub>, M<sub>3</sub> =  <span id="res13-moment-m1">0</span> <span class="unit-moment">N·mm</span></div>
+        <div class="formula"> M<sub>2</sub> = +FL / 8 &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  M<sub>2</sub> =  <span id="res13-moment-m2">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -1008,11 +1020,11 @@
         <p>Fixed-Fixed, UDL</p>
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
-            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp14-w" value="500" oninput="calculateFFUDL()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp14-l" value="5" oninput="calculateFFUDL()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp14-x" value="2.5" oninput="calculateFFUDL()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp14-e" value="200000000000" oninput="calculateFFUDL()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp14-i" value="0.0001" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp14-w" value="0.5" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp14-l" value="5000" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp14-x" value="2500" oninput="calculateFFUDL()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp14-e" value="200000" oninput="calculateFFUDL()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp14-i" value="100000000" oninput="calculateFFUDL()"></div>
         </div>
     </div>
     
@@ -1043,20 +1055,20 @@
 
     <div class="col-right">
         <div class="section-title">Deflection:</div>
-        <div class="formula">\( \delta = -\frac{wx^2}{24EI}(L - x)^2 \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res14-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{wL^4}{384EI} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res14-delta-max">0</span> m</div>
+        <div class="formula"> δ = −<span class="frac"><span class="fn">wx<sup>2</sup></span><span class="fd">24EI</span></span>(L − x)<sup>2</sup> </div>
+        <div class="result">↳  δ =  <span id="res14-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">wL<sup>4</sup></span><span class="fd">384EI</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res14-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_1 = +wL/2 \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( V_1 = \) <span id="res14-shear-v1">0</span> N</div>
+        <div class="formula"> V<sub>1</sub> = +wL/2 &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  V<sub>1</sub> =  <span id="res14-shear-v1">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_1 = M_3 = -wL^2/12 \quad @ \; x = 0 \; \& \; x = L \)</div>
-        <div class="result">↳ \( M_1, M_3 = \) <span id="res14-moment-m1">0</span> N·m</div>
-        <div class="formula">\( M_2 = wL^2/24 \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( M_2 = \) <span id="res14-moment-m2">0</span> N·m</div>
+        <div class="formula"> M<sub>1</sub> = M<sub>3</sub> = −wL<sup>2</sup>/12 &nbsp;&nbsp; @   x = 0   &   x = L </div>
+        <div class="result">↳  M<sub>1</sub>, M<sub>3</sub> =  <span id="res14-moment-m1">0</span> <span class="unit-moment">N·mm</span></div>
+        <div class="formula"> M<sub>2</sub> = wL<sup>2</sup>/24 &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  M<sub>2</sub> =  <span id="res14-moment-m2">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -1067,11 +1079,11 @@
         <div class="input-section">
             <strong style="font-size: 12px;">CALCULATOR INPUTS</strong><br><br>
             <div class="input-group"><label>Point F (N)</label><input type="number" id="inp15-f" value="1000" oninput="calculateSSCombined()"></div>
-            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp15-w" value="500" oninput="calculateSSCombined()"></div>
-            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp15-l" value="5" oninput="calculateSSCombined()"></div>
-            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp15-x" value="2.5" oninput="calculateSSCombined()" step="0.1"></div>
-            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp15-e" value="200000000000" oninput="calculateSSCombined()"></div>
-            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp15-i" value="0.0001" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Load w (N/m)</label><input type="number" id="inp15-w" value="0.5" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Length L (m)</label><input type="number" id="inp15-l" value="5000" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Position x (m)</label><input type="number" id="inp15-x" value="2500" oninput="calculateSSCombined()" step="0.1"></div>
+            <div class="input-group"><label>Modulus E (Pa)</label><input type="number" id="inp15-e" value="200000" oninput="calculateSSCombined()"></div>
+            <div class="input-group"><label>Inertia I (m^4)</label><input type="number" id="inp15-i" value="100000000" oninput="calculateSSCombined()"></div>
         </div>
     </div>
     
@@ -1108,18 +1120,18 @@
 
     <div class="col-right">
         <div class="section-title">Deflection (Superposition):</div>
-        <div class="formula">\( \delta = \delta_{udl} + \delta_{point} \)</div>
-        <div class="result">↳ \( \delta = \) <span id="res15-delta">0</span> m</div>
-        <div class="formula">\( \delta_{max} = \frac{5wL^4}{384EI} + \frac{FL^3}{48EI} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( \delta_{max} = \) <span id="res15-delta-max">0</span> m</div>
+        <div class="formula"> δ = δ<sub>udl</sub> + δ<sub>point</sub> </div>
+        <div class="result">↳  δ =  <span id="res15-delta">0</span> <span class="unit-delta">mm</span></div>
+        <div class="formula"> δ<sub>max</sub> = −<span class="frac"><span class="fn">5wL<sup>4</sup></span><span class="fd">384EI</span></span> − <span class="frac"><span class="fn">FL<sup>3</sup></span><span class="fd">48EI</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  δ<sub>max</sub> =  <span id="res15-delta-max">0</span> <span class="unit-delta">mm</span></div>
 
         <div class="section-title">Shear:</div>
-        <div class="formula">\( V_{max} = \frac{wL}{2} + \frac{F}{2} \quad @ \; x = 0 \)</div>
-        <div class="result">↳ \( V_{max} = \) <span id="res15-shear-max">0</span> N</div>
+        <div class="formula"> V<sub>max</sub> = <span class="frac"><span class="fn">wL</span><span class="fd">2</span></span> + <span class="frac"><span class="fn">F</span><span class="fd">2</span></span> &nbsp;&nbsp; @   x = 0 </div>
+        <div class="result">↳  V<sub>max</sub> =  <span id="res15-shear-max">0</span> <span class="unit-shear">N</span></div>
 
         <div class="section-title">Moment:</div>
-        <div class="formula">\( M_{max} = \frac{wL^2}{8} + \frac{FL}{4} \quad @ \; x = L/2 \)</div>
-        <div class="result">↳ \( M_{max} = \) <span id="res15-moment-max">0</span> N·m</div>
+        <div class="formula"> M<sub>max</sub> = <span class="frac"><span class="fn">wL<sup>2</sup></span><span class="fd">8</span></span> + <span class="frac"><span class="fn">FL</span><span class="fd">4</span></span> &nbsp;&nbsp; @   x = L/2 </div>
+        <div class="result">↳  M<sub>max</sub> =  <span id="res15-moment-max">0</span> <span class="unit-moment">N·mm</span></div>
     </div>
 </div>
 
@@ -1142,40 +1154,40 @@
     }
 
     // --- GLOBAL UNIT CONFIGURATION ---
-    let currentUnit = 'metric_n_m';
+    // Sign convention: deflection -ve downward; slope = ddelta/dx (radians, dimensionless
+    // so it never converts between unit systems); moment sagging +ve, hogging -ve.
+    let currentUnit = 'si_n_mm';
 
     const unitProfiles = {
-        'metric_n_m': {
-            labels: { f: '(N)', l: '(m)', e: '(Pa)', i: '(m^4)', w: '(N/m)', m0: '(N·m)' },
-            resUnits: { delta: 'm', slope: '°', shear: 'N', moment: 'N·m' },
-            toBase: { f: 1, l: 1, x: 1, e: 1, i: 1, w: 1, m0: 1 },
-            fromBase: { delta: 1, slope: 180 / Math.PI, shear: 1, moment: 1 }
+        'si_n_mm': {
+            labels: { f: '(N)', l: '(mm)', e: '(MPa)', i: '(mm\u2074)', w: '(N/mm)', m0: '(N\u00b7mm)' },
+            resUnits: { delta: 'mm', slope: 'rad', shear: 'N', moment: 'N\u00b7mm' },
+            toBase: { f: 1, l: 0.001, x: 0.001, e: 1e6, i: 1e-12, w: 1000, m0: 0.001 },
+            fromBase: { delta: 1000, slope: 1, shear: 1, moment: 1000 }
         },
-        'metric_kn_m': {
-            labels: { f: '(kN)', l: '(m)', e: '(GPa)', i: '(cm^4)', w: '(kN/m)', m0: '(kN·m)' },
-            resUnits: { delta: 'mm', slope: '°', shear: 'kN', moment: 'kN·m' },
-            toBase: { f: 1000, l: 1, x: 1, e: 1e9, i: 1e-8, w: 1000, m0: 1000 },
-            fromBase: { delta: 1000, slope: 180 / Math.PI, shear: 1/1000, moment: 1/1000 }
+        'si_kn_mm': {
+            labels: { f: '(kN)', l: '(mm)', e: '(GPa)', i: '(mm\u2074)', w: '(kN/mm)', m0: '(kN\u00b7mm)' },
+            resUnits: { delta: 'mm', slope: 'rad', shear: 'kN', moment: 'kN\u00b7mm' },
+            toBase: { f: 1000, l: 0.001, x: 0.001, e: 1e9, i: 1e-12, w: 1e6, m0: 1 },
+            fromBase: { delta: 1000, slope: 1, shear: 1/1000, moment: 1 }
         },
         'us_lbf_in': {
-            labels: { f: '(lbf)', l: '(in)', e: '(psi)', i: '(in^4)', w: '(lbf/in)', m0: '(lbf·in)' },
-            resUnits: { delta: 'in', slope: '°', shear: 'lbf', moment: 'lbf·in' },
+            labels: { f: '(lbf)', l: '(in)', e: '(psi)', i: '(in^4)', w: '(lbf/in)', m0: '(lbf\u00b7in)' },
+            resUnits: { delta: 'in', slope: 'rad', shear: 'lbf', moment: 'lbf\u00b7in' },
             toBase: { f: 4.44822, l: 0.0254, x: 0.0254, e: 6894.76, i: 4.16231e-7, w: 175.1268, m0: 0.1129848 },
-            fromBase: { delta: 1/0.0254, slope: 180 / Math.PI, shear: 1/4.44822, moment: 1/0.1129848 }
+            fromBase: { delta: 1/0.0254, slope: 1, shear: 1/4.44822, moment: 1/0.1129848 }
         },
         'us_kip_ft': {
-            labels: { f: '(kip)', l: '(ft)', e: '(ksi)', i: '(in^4)', w: '(kip/ft)', m0: '(kip·ft)' },
-            resUnits: { delta: 'in', slope: '°', shear: 'kip', moment: 'kip·ft' },
+            labels: { f: '(kip)', l: '(ft)', e: '(ksi)', i: '(in^4)', w: '(kip/ft)', m0: '(kip\u00b7ft)' },
+            resUnits: { delta: 'in', slope: 'rad', shear: 'kip', moment: 'kip\u00b7ft' },
             toBase: { f: 4448.22, l: 0.3048, x: 0.3048, e: 6894760, i: 4.16231e-7, w: 14593.9, m0: 1355.818 },
-            fromBase: { delta: 1/0.0254, slope: 180 / Math.PI, shear: 1/4448.22, moment: 1/1355.818 }
+            fromBase: { delta: 1/0.0254, slope: 1, shear: 1/4448.22, moment: 1/1355.818 }
         }
     };
 
-    // --- DOM MANIPULATION & CONVERSION UTILITIES ---
+    // --- DOM: inject unit labels on inputs (result units are static in the HTML) ---
     function setupUnitsDOM() {
         const typeMap = { '-f': 'f', '-l': 'l', '-a': 'l', '-x': 'x', '-e': 'e', '-i': 'i', '-w': 'w', '-w1': 'w', '-m0': 'm0' };
-        
-        // Auto-inject label spans based on id pattern matching
         document.querySelectorAll('input[type="number"]').forEach(inp => {
             const id = inp.id;
             for (const suffix in typeMap) {
@@ -1183,48 +1195,31 @@
                     inp.setAttribute('data-type', typeMap[suffix]);
                     const label = inp.previousElementSibling;
                     if (label && label.tagName === 'LABEL' && !label.innerHTML.includes('<span')) {
-                        let text = label.innerText.replace(/\s*\(.*\)/, '');
+                        let text = label.textContent.replace(/\s*\(.*\)/, '');
                         let lblClass = typeMap[suffix] === 'x' ? 'l' : typeMap[suffix];
-                        label.innerHTML = `${text} <span class="lbl-${lblClass}">()</span>`;
+                        label.innerHTML = text + ' <span class="lbl-' + lblClass + '">()</span>';
                     }
                 }
             }
         });
-
-        // Auto-inject unit spans into results
-        document.querySelectorAll('.result').forEach(div => {
-            const text = div.innerHTML;
-            if (text.includes('\\delta')) {
-                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-delta">m</span>');
-            } else if (text.includes('\\theta')) {
-                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-slope">°</span>');
-            } else if (text.includes('V')) {
-                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-shear">N</span>');
-            } else if (text.includes('M')) {
-                div.innerHTML = text.replace(/(<\/span>)[^<]*$/, '$1 <span class="unit-moment">N·m</span>');
-            }
-        });
-        
-        changeUnits(true); // Hydrate visual labels once on load
+        changeUnits(true);
     }
 
     function changeUnits(isInit = false) {
         const newUnit = document.getElementById('unit-select').value;
         const oldP = unitProfiles[currentUnit].toBase;
         const newP = unitProfiles[newUnit].toBase;
-
         const typeMap = { 'f': 'f', 'l': 'l', 'a': 'l', 'x': 'l', 'e': 'e', 'i': 'i', 'w': 'w', 'm0': 'm0' };
 
-        // Convert existing input values transparently 
         if (!isInit) {
             document.querySelectorAll('.input-group input').forEach(inp => {
                 let type = inp.getAttribute('data-type');
-                if (type === 'x') type = 'l'; 
+                if (type === 'x') type = 'l';
                 if (type && typeMap[type]) {
                     const baseFactor = typeMap[type];
                     let val = parseFloat(inp.value) || 0;
                     val = (val * oldP[baseFactor]) / newP[baseFactor];
-                    inp.value = parseFloat(val.toPrecision(7)); 
+                    inp.value = parseFloat(val.toPrecision(7));
                 }
             });
         }
@@ -1233,7 +1228,6 @@
         const labels = unitProfiles[currentUnit].labels;
         const resU = unitProfiles[currentUnit].resUnits;
 
-        // Apply updated labels
         document.querySelectorAll('.lbl-f').forEach(el => el.innerText = labels.f);
         document.querySelectorAll('.lbl-l').forEach(el => el.innerText = labels.l);
         document.querySelectorAll('.lbl-e').forEach(el => el.innerText = labels.e);
@@ -1248,122 +1242,102 @@
         if (!isInit) calculateAll();
     }
 
-    // --- PHYSICS HELPERS ---
+    // --- HELPERS ---
     function getBase(id, type) {
         const inp = document.getElementById(id);
-        if(!inp) return 0;
-        let t = type;
-        if(t === 'a' || t === 'x') t = 'l'; 
-        return (parseFloat(inp.value) || 0) * unitProfiles[currentUnit].toBase[t];
+        if (!inp) return 0;
+        let tp = type;
+        if (tp === 'a' || tp === 'x') tp = 'l';
+        return (parseFloat(inp.value) || 0) * unitProfiles[currentUnit].toBase[tp];
     }
-
     function setBound(id, valBase) {
         const inp = document.getElementById(id);
-        if(inp) inp.value = parseFloat((valBase / unitProfiles[currentUnit].toBase['l']).toPrecision(7));
+        if (inp) inp.value = parseFloat((valBase / unitProfiles[currentUnit].toBase['l']).toPrecision(7));
     }
-
     function setRes(id, valBase, type, forcePlus = false) {
-        const num = valBase * unitProfiles[currentUnit].fromBase[type];
         const el = document.getElementById(id);
-        if(!el) return;
-        
+        if (!el) return;
+        const num = valBase * unitProfiles[currentUnit].fromBase[type];
         if (Math.abs(num) < 1e-15) {
             el.innerText = (type === 'delta' || type === 'slope') ? "0.0000e+0" : "0.00";
             return;
         }
-        let str = type === 'delta' || type === 'slope' ? num.toExponential(4) : num.toFixed(2);
+        let str = (type === 'delta' || type === 'slope') ? num.toExponential(4) : num.toFixed(2);
         if (num > 0 && forcePlus) str = "+" + str;
         el.innerText = str;
     }
 
-    // --- STRUCTURAL CALCULATIONS ---
-    function calculate() {
-        const F = getBase('inp-f', 'f');
-        const L = getBase('inp-l', 'l');
-        let x = getBase('inp-x', 'x');
-        const E = getBase('inp-e', 'e');
-        const I = getBase('inp-i', 'i');
+    // ======================================================================
+    // STRUCTURAL CALCULATIONS
+    // delta and theta are the true signed values (downward -ve); they are
+    // passed to setRes with no further sign flip. Shear/moment keep the
+    // sagging-positive convention throughout.
+    // ======================================================================
 
+    // Tab 1: Cantilever, end load
+    function calculate() {
+        const F = getBase('inp-f','f'), L = getBase('inp-l','l'), E = getBase('inp-e','e'), I = getBase('inp-i','i');
+        let x = getBase('inp-x','x');
         if (x > L) { x = L; setBound('inp-x', x); }
         if (x < 0) { x = 0; setBound('inp-x', 0); }
-
         const EI = E * I;
-        const delta = (F * Math.pow(x, 2) / (6 * EI)) * (3 * L - x);
-        const delta_max = (F * Math.pow(L, 3)) / (3 * EI); 
-        const theta = (F * x / (2 * EI)) * (2 * L - x);
-        const theta_max = (F * Math.pow(L, 2)) / (2 * EI);
-        const V = F;
-        const M = -1 * F * (L - x);
-        const M_max = -1 * F * L;
-
-        setRes('res-delta', -delta, 'delta');
+        const delta = -(F * x * x / (6 * EI)) * (3 * L - x);
+        const delta_max = -(F * Math.pow(L, 3)) / (3 * EI);
+        const theta = -(F * x / (2 * EI)) * (2 * L - x);
+        const theta_max = -(F * Math.pow(L, 2)) / (2 * EI);
+        const V = F, M = -F * (L - x), M_max = -F * L;
+        setRes('res-delta', delta, 'delta');
         setRes('res-delta-max', delta_max, 'delta');
-        setRes('res-slope', -theta, 'slope');
+        setRes('res-slope', theta, 'slope');
         setRes('res-slope-max', theta_max, 'slope');
         setRes('res-shear', V, 'shear', true);
         setRes('res-moment', M, 'moment');
         setRes('res-moment-max', M_max, 'moment');
     }
 
+    // Tab 2: Cantilever, intermediate load at a
     function calculateInt() {
-        const F = getBase('inp2-f', 'f');
-        const L = getBase('inp2-l', 'l');
-        let a = getBase('inp2-a', 'a');
-        let x = getBase('inp2-x', 'x');
-        const E = getBase('inp2-e', 'e');
-        const I = getBase('inp2-i', 'i');
-
+        const F = getBase('inp2-f','f'), L = getBase('inp2-l','l'), E = getBase('inp2-e','e'), I = getBase('inp2-i','i');
+        let a = getBase('inp2-a','a'), x = getBase('inp2-x','x');
         if (a > L) { a = L; setBound('inp2-a', a); }
         if (a < 0) { a = 0; setBound('inp2-a', 0); }
         if (x > L) { x = L; setBound('inp2-x', x); }
         if (x < 0) { x = 0; setBound('inp2-x', 0); }
-
         const EI = E * I;
         let delta, theta, V, M;
-
         if (x <= a) {
-            delta = (F * Math.pow(x, 2) / (6 * EI)) * (3 * a - x);
-            theta = (F * x / (2 * EI)) * (2 * a - x);
-            V = F;
-            M = -1 * F * (a - x);
+            delta = -(F * x * x / (6 * EI)) * (3 * a - x);
+            theta = -(F * x / (2 * EI)) * (2 * a - x);
+            V = F; M = -F * (a - x);
         } else {
-            delta = (F * Math.pow(a, 2) / (6 * EI)) * (3 * x - a);
-            theta = (F * Math.pow(a, 2)) / (2 * EI);
-            V = 0;
-            M = 0;
+            delta = -(F * a * a / (6 * EI)) * (3 * x - a);
+            theta = -(F * a * a) / (2 * EI);
+            V = 0; M = 0;
         }
-        const delta_max = (F * Math.pow(a, 2) / (6 * EI)) * (3 * L - a);
-
-        setRes('res2-delta', -delta, 'delta');
+        const delta_max = -(F * a * a / (6 * EI)) * (3 * L - a);
+        setRes('res2-delta', delta, 'delta');
         setRes('res2-delta-max', delta_max, 'delta');
-        setRes('res2-slope', -theta, 'slope');
+        setRes('res2-slope', theta, 'slope');
         setRes('res2-shear', V, 'shear', true);
         setRes('res2-moment', M, 'moment');
     }
 
+    // Tab 3: Cantilever, UDL
     function calculateUDL() {
-        const w = getBase('inp3-w', 'w');
-        const L = getBase('inp3-l', 'l');
-        let x = getBase('inp3-x', 'x');
-        const E = getBase('inp3-e', 'e');
-        const I = getBase('inp3-i', 'i');
-
+        const w = getBase('inp3-w','w'), L = getBase('inp3-l','l'), E = getBase('inp3-e','e'), I = getBase('inp3-i','i');
+        let x = getBase('inp3-x','x');
         if (x > L) { x = L; setBound('inp3-x', x); }
         if (x < 0) { x = 0; setBound('inp3-x', 0); }
-
         const EI = E * I;
-        const delta = (w * Math.pow(x, 2) / (24 * EI)) * (6 * Math.pow(L, 2) - 4 * L * x + Math.pow(x, 2));
-        const delta_max = (w * Math.pow(L, 4)) / (8 * EI); 
-        const theta = (w * x / (6 * EI)) * (3 * Math.pow(L, 2) - 3 * L * x + Math.pow(x, 2));
-        const theta_max = (w * Math.pow(L, 3)) / (6 * EI);
-        const V = w * (L - x);
-        const V_max = w * L;
-        const M = -1 * w * Math.pow(L - x, 2) / 2;
-        const M_max = -1 * w * Math.pow(L, 2) / 2;
-
-        setRes('res3-delta', -delta, 'delta');
+        const delta = -(w * x * x / (24 * EI)) * (6 * L * L - 4 * L * x + x * x);
+        const delta_max = -(w * Math.pow(L, 4)) / (8 * EI);
+        const theta = -(w * x / (6 * EI)) * (3 * L * L - 3 * L * x + x * x);
+        const theta_max = -(w * Math.pow(L, 3)) / (6 * EI);
+        const V = w * (L - x), V_max = w * L;
+        const M = -w * Math.pow(L - x, 2) / 2, M_max = -w * L * L / 2;
+        setRes('res3-delta', delta, 'delta');
         setRes('res3-delta-max', delta_max, 'delta');
-        setRes('res3-slope', -theta, 'slope');
+        setRes('res3-slope', theta, 'slope');
         setRes('res3-slope-max', theta_max, 'slope');
         setRes('res3-shear', V, 'shear', true);
         setRes('res3-shear-max', V_max, 'shear', true);
@@ -1371,29 +1345,22 @@
         setRes('res3-moment-max', M_max, 'moment');
     }
 
+    // Tab 4: Cantilever, triangular load (peak w1 at fixed end -> 0 at free end)
     function calculateTri() {
-        const w1 = getBase('inp4-w1', 'w');
-        const L = getBase('inp4-l', 'l');
-        let x = getBase('inp4-x', 'x');
-        const E = getBase('inp4-e', 'e');
-        const I = getBase('inp4-i', 'i');
-
+        const w1 = getBase('inp4-w1','w'), L = getBase('inp4-l','l'), E = getBase('inp4-e','e'), I = getBase('inp4-i','i');
+        let x = getBase('inp4-x','x');
         if (x > L) { x = L; setBound('inp4-x', x); }
         if (x < 0) { x = 0; setBound('inp4-x', 0); }
-
         const EI = E * I;
-        const delta = (w1 * Math.pow(x, 2) / (120 * L * EI)) * (10 * Math.pow(L, 3) - 10 * Math.pow(L, 2) * x + 5 * L * Math.pow(x, 2) - Math.pow(x, 3));
-        const delta_max = (w1 * Math.pow(L, 4)) / (30 * EI); 
-        const theta = (w1 * x / (24 * L * EI)) * (4 * Math.pow(L, 3) - 6 * Math.pow(L, 2) * x + 4 * L * Math.pow(x, 2) - Math.pow(x, 3));
-        const theta_max = (w1 * Math.pow(L, 3)) / (24 * EI);
-        const V = (w1 / (2 * L)) * Math.pow(L - x, 2);
-        const V_max = (w1 * L) / 2;
-        const M = -1 * (w1 / (6 * L)) * Math.pow(L - x, 3);
-        const M_max = -1 * (w1 * Math.pow(L, 2)) / 6;
-
-        setRes('res4-delta', -delta, 'delta');
+        const delta = -(w1 * x * x / (120 * L * EI)) * (10 * Math.pow(L, 3) - 10 * L * L * x + 5 * L * x * x - Math.pow(x, 3));
+        const delta_max = -(w1 * Math.pow(L, 4)) / (30 * EI);
+        const theta = -(w1 * x / (24 * L * EI)) * (4 * Math.pow(L, 3) - 6 * L * L * x + 4 * L * x * x - Math.pow(x, 3));
+        const theta_max = -(w1 * Math.pow(L, 3)) / (24 * EI);
+        const V = (w1 / (2 * L)) * Math.pow(L - x, 2), V_max = (w1 * L) / 2;
+        const M = -(w1 / (6 * L)) * Math.pow(L - x, 3), M_max = -(w1 * L * L) / 6;
+        setRes('res4-delta', delta, 'delta');
         setRes('res4-delta-max', delta_max, 'delta');
-        setRes('res4-slope', -theta, 'slope');
+        setRes('res4-slope', theta, 'slope');
         setRes('res4-slope-max', theta_max, 'slope');
         setRes('res4-shear', V, 'shear', true);
         setRes('res4-shear-max', V_max, 'shear', true);
@@ -1401,423 +1368,242 @@
         setRes('res4-moment-max', M_max, 'moment');
     }
 
+    // Tab 5: Cantilever, end moment M0
     function calculateMoment() {
-        const M0 = getBase('inp5-m0', 'm0');
-        const L = getBase('inp5-l', 'l');
-        let x = getBase('inp5-x', 'x');
-        const E = getBase('inp5-e', 'e');
-        const I = getBase('inp5-i', 'i');
-
+        const M0 = getBase('inp5-m0','m0'), L = getBase('inp5-l','l'), E = getBase('inp5-e','e'), I = getBase('inp5-i','i');
+        let x = getBase('inp5-x','x');
         if (x > L) { x = L; setBound('inp5-x', x); }
         if (x < 0) { x = 0; setBound('inp5-x', 0); }
-
         const EI = E * I;
-        const delta = (M0 * Math.pow(x, 2)) / (2 * EI);
-        const delta_max = (M0 * Math.pow(L, 2)) / (2 * EI); 
-        const theta = (M0 * x) / EI;
-        const theta_max = (M0 * L) / EI;
-        const V = 0;
-        const M = -M0;
-
-        setRes('res5-delta', -delta, 'delta');
+        const delta = -(M0 * x * x) / (2 * EI);
+        const delta_max = -(M0 * L * L) / (2 * EI);
+        const theta = -(M0 * x) / EI;
+        const V = 0, M = -M0;
+        setRes('res5-delta', delta, 'delta');
         setRes('res5-delta-max', delta_max, 'delta');
-        setRes('res5-slope', -theta, 'slope');
-        setRes('res5-slope-max', theta_max, 'slope');
+        setRes('res5-slope', theta, 'slope');
         setRes('res5-shear', V, 'shear');
         setRes('res5-moment', M, 'moment');
     }
 
+    // Tab 6: Simply supported, point load at a
     function calculateSS() {
-        const F = getBase('inp6-f', 'f');
-        const L = getBase('inp6-l', 'l');
-        let a = getBase('inp6-a', 'a');
-        let x = getBase('inp6-x', 'x');
-        const E = getBase('inp6-e', 'e');
-        const I = getBase('inp6-i', 'i');
-
+        const F = getBase('inp6-f','f'), L = getBase('inp6-l','l'), E = getBase('inp6-e','e'), I = getBase('inp6-i','i');
+        let a = getBase('inp6-a','a'), x = getBase('inp6-x','x');
         if (a > L) { a = L; setBound('inp6-a', a); }
         if (a < 0) { a = 0; setBound('inp6-a', 0); }
         if (x > L) { x = L; setBound('inp6-x', x); }
         if (x < 0) { x = 0; setBound('inp6-x', 0); }
-
-        const b = L - a;
-        const EI = E * I;
+        const b = L - a, EI = E * I;
         let delta, theta, V, M;
-
         if (x <= a) {
-            delta = -1 * (F * b * x / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(b, 2) - Math.pow(x, 2));
-            theta = -1 * (F * b / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(b, 2) - 3 * Math.pow(x, 2));
-            V = (F * b) / L;
-            M = (F * b * x) / L;
+            delta = -(F * b * x / (6 * L * EI)) * (L * L - b * b - x * x);
+            theta = -(F * b / (6 * L * EI)) * (L * L - b * b - 3 * x * x);
+            V = (F * b) / L; M = (F * b * x) / L;
         } else {
-            let x_mirror = L - x;
-            delta = -1 * (F * a * x_mirror / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(a, 2) - Math.pow(x_mirror, 2));
-            theta = (F * a / (6 * L * EI)) * (Math.pow(L, 2) - Math.pow(a, 2) - 3 * Math.pow(x_mirror, 2));
-            V = -1 * (F * a) / L;
-            M = (F * a * x_mirror) / L;
+            const xm = L - x;
+            delta = -(F * a * xm / (6 * L * EI)) * (L * L - a * a - xm * xm);
+            theta = (F * a / (6 * L * EI)) * (L * L - a * a - 3 * xm * xm);
+            V = -(F * a) / L; M = (F * a * xm) / L;
         }
-
-        let delta_max = a >= b 
-            ? (F * b * Math.pow(Math.pow(L, 2) - Math.pow(b, 2), 1.5)) / (9 * Math.sqrt(3) * L * EI)
-            : (F * a * Math.pow(Math.pow(L, 2) - Math.pow(a, 2), 1.5)) / (9 * Math.sqrt(3) * L * EI);
-
-        const theta1 = -1 * (F * a * b * (L + b)) / (6 * L * EI);
-        const theta2 = (F * a * b * (L + a)) / (6 * L * EI);
-        const V1 = (F * b) / L;
-        const V2 = -1 * (F * a) / L;
-        const M_max = (F * a * b) / L;
-
-        setRes('res6-delta', -delta, 'delta');
+        const delta_max = (a >= b)
+            ? -(F * b * Math.pow(L * L - b * b, 1.5)) / (9 * Math.sqrt(3) * L * EI)
+            : -(F * a * Math.pow(L * L - a * a, 1.5)) / (9 * Math.sqrt(3) * L * EI);
+        const V1 = (F * b) / L, V2 = -(F * a) / L, M_max = (F * a * b) / L;
+        setRes('res6-delta', delta, 'delta');
         setRes('res6-delta-max', delta_max, 'delta');
-        setRes('res6-slope', -theta, 'slope');
-        setRes('res6-slope1', theta1, 'slope');
-        setRes('res6-slope2', theta2, 'slope', true);
-        setRes('res6-shear-v', V, 'shear', true);
+        setRes('res6-slope', theta, 'slope');
         setRes('res6-shear-v1', V1, 'shear', true);
         setRes('res6-shear-v2', V2, 'shear');
         setRes('res6-moment', M, 'moment', true);
         setRes('res6-moment-max', M_max, 'moment', true);
     }
 
+    // Tab 7: Simply supported, central point load
     function calculateSSCenter() {
-        const F = getBase('inp7-f', 'f');
-        const L = getBase('inp7-l', 'l');
-        let x = getBase('inp7-x', 'x');
-        const E = getBase('inp7-e', 'e');
-        const I = getBase('inp7-i', 'i');
-
+        const F = getBase('inp7-f','f'), L = getBase('inp7-l','l'), E = getBase('inp7-e','e'), I = getBase('inp7-i','i');
+        let x = getBase('inp7-x','x');
         if (x > L) { x = L; setBound('inp7-x', x); }
         if (x < 0) { x = 0; setBound('inp7-x', 0); }
-
-        const EI = E * I;
-        const halfL = L / 2;
+        const EI = E * I, hL = L / 2;
         let delta, theta, V, M;
-
-        if (x <= halfL) {
-            delta = -1 * (F * x / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x, 2));
-            theta = -1 * (F / (16 * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x, 2));
-            V = F / 2;
-            M = (F * x) / 2;
+        if (x <= hL) {
+            delta = -(F * x / (48 * EI)) * (3 * L * L - 4 * x * x);
+            theta = -(F / (16 * EI)) * (L * L - 4 * x * x);
+            V = F / 2; M = (F * x) / 2;
         } else {
-            let x_mirror = L - x;
-            delta = -1 * (F * x_mirror / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
-            theta = (F / (16 * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
-            V = -F / 2;
-            M = (F * x_mirror) / 2;
+            const xm = L - x;
+            delta = -(F * xm / (48 * EI)) * (3 * L * L - 4 * xm * xm);
+            theta = (F / (16 * EI)) * (L * L - 4 * xm * xm);
+            V = -F / 2; M = (F * xm) / 2;
         }
-
-        const delta_max = (F * Math.pow(L, 3)) / (48 * EI);
-        const theta1 = -1 * (F * Math.pow(L, 2)) / (16 * EI);
-        const theta2 = (F * Math.pow(L, 2)) / (16 * EI);
-        const V1 = F / 2;
-        const V2 = -F / 2;
-        const M_max = (F * L) / 4;
-
-        setRes('res7-delta', -delta, 'delta');
+        const delta_max = -(F * Math.pow(L, 3)) / (48 * EI);
+        const V1 = F / 2, V2 = -F / 2, M_max = (F * L) / 4;
+        setRes('res7-delta', delta, 'delta');
         setRes('res7-delta-max', delta_max, 'delta');
-        setRes('res7-slope', -theta, 'slope');
-        setRes('res7-slope1', theta1, 'slope');
-        setRes('res7-slope2', theta2, 'slope', true);
-        setRes('res7-shear-v', V, 'shear', true);
+        setRes('res7-slope', theta, 'slope');
         setRes('res7-shear-v1', V1, 'shear', true);
         setRes('res7-shear-v2', V2, 'shear');
-        setRes('res7-moment', M, 'moment', true);
         setRes('res7-moment-max', M_max, 'moment', true);
     }
 
+    // Tab 8: Simply supported, two equal loads F at a and (L-a)
     function calculateSS2Loads() {
-        const F = getBase('inp8-f', 'f');
-        const L = getBase('inp8-l', 'l');
-        let a = getBase('inp8-a', 'a');
-        let x = getBase('inp8-x', 'x');
-        const E = getBase('inp8-e', 'e');
-        const I = getBase('inp8-i', 'i');
-
+        const F = getBase('inp8-f','f'), L = getBase('inp8-l','l'), E = getBase('inp8-e','e'), I = getBase('inp8-i','i');
+        let a = getBase('inp8-a','a'), x = getBase('inp8-x','x');
         if (a > L / 2) { a = L / 2; setBound('inp8-a', a); }
         if (a < 0) { a = 0; setBound('inp8-a', 0); }
         if (x > L) { x = L; setBound('inp8-x', x); }
         if (x < 0) { x = 0; setBound('inp8-x', 0); }
-
         const EI = E * I;
-        let delta, theta, V, M;
-
+        let delta;
         if (x <= a) {
-            delta = (F * x / (6 * EI)) * (3 * a * L - 3 * Math.pow(a, 2) - Math.pow(x, 2));
-            theta = -1 * (F / (2 * EI)) * (a * L - Math.pow(a, 2) - Math.pow(x, 2));
-            V = F;
-            M = F * x;
+            delta = -(F * x / (6 * EI)) * (3 * a * L - 3 * a * a - x * x);
         } else if (x <= L - a) {
-            delta = (F * a / (6 * EI)) * (3 * L * x - 3 * Math.pow(x, 2) - Math.pow(a, 2));
-            theta = -1 * (F * a / (2 * EI)) * (L - 2 * x);
-            V = 0;
-            M = F * a;
+            delta = -(F * a / (6 * EI)) * (3 * L * x - 3 * x * x - a * a);
         } else {
-            let x_mirror = L - x;
-            delta = (F * x_mirror / (6 * EI)) * (3 * a * L - 3 * Math.pow(a, 2) - Math.pow(x_mirror, 2));
-            theta = (F / (2 * EI)) * (a * L - Math.pow(a, 2) - Math.pow(x_mirror, 2)); 
-            V = -F;
-            M = F * x_mirror;
+            const xm = L - x;
+            delta = -(F * xm / (6 * EI)) * (3 * a * L - 3 * a * a - xm * xm);
         }
-
-        const delta_max = (F * a / (24 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(a, 2));
-        const theta1 = -1 * (F * a * (L - a)) / (2 * EI);
-        const theta2 = (F * a * (L - a)) / (2 * EI);
-        const V1 = F;
-        const V2 = -F;
-        const M_max = F * a;
-
-        setRes('res8-delta', -delta, 'delta'); // Assuming positive math delta translates to negative physical drop
+        const delta_max = -(F * a / (24 * EI)) * (3 * L * L - 4 * a * a);
+        const V1 = F, M_max = F * a;
+        setRes('res8-delta', delta, 'delta');
         setRes('res8-delta-max', delta_max, 'delta');
-        setRes('res8-slope', -theta, 'slope');
-        setRes('res8-slope1', theta1, 'slope');
-        setRes('res8-slope2', theta2, 'slope', true);
-        setRes('res8-shear-v', V, 'shear', true);
         setRes('res8-shear-v1', V1, 'shear', true);
-        setRes('res8-shear-v2', V2, 'shear');
-        setRes('res8-moment', M, 'moment', true);
         setRes('res8-moment-max', M_max, 'moment', true);
     }
 
+    // Tab 9: Simply supported, UDL
     function calculateSSUDL() {
-        const w = getBase('inp9-w', 'w');
-        const L = getBase('inp9-l', 'l');
-        let x = getBase('inp9-x', 'x');
-        const E = getBase('inp9-e', 'e');
-        const I = getBase('inp9-i', 'i');
-
+        const w = getBase('inp9-w','w'), L = getBase('inp9-l','l'), E = getBase('inp9-e','e'), I = getBase('inp9-i','i');
+        let x = getBase('inp9-x','x');
         if (x > L) { x = L; setBound('inp9-x', x); }
         if (x < 0) { x = 0; setBound('inp9-x', 0); }
-
         const EI = E * I;
-        const delta = -1 * (w * x / (24 * EI)) * (Math.pow(L, 3) - 2 * L * Math.pow(x, 2) + Math.pow(x, 3));
-        const delta_max = (5 * w * Math.pow(L, 4)) / (384 * EI);
-        const theta = -1 * (w / (24 * EI)) * (Math.pow(L, 3) - 6 * L * Math.pow(x, 2) + 4 * Math.pow(x, 3));
-        const theta1 = -1 * (w * Math.pow(L, 3)) / (24 * EI);
-        const theta2 = (w * Math.pow(L, 3)) / (24 * EI);
-        const V = w * (L / 2 - x);
-        const V1 = (w * L) / 2;
-        const V2 = -1 * (w * L) / 2;
-        const M = (w * x / 2) * (L - x);
-        const M_max = (w * Math.pow(L, 2)) / 8;
-
+        const delta = -(w * x / (24 * EI)) * (Math.pow(L, 3) - 2 * L * x * x + Math.pow(x, 3));
+        const delta_max = -(5 * w * Math.pow(L, 4)) / (384 * EI);
+        const V1 = (w * L) / 2, M_max = (w * L * L) / 8;
         setRes('res9-delta', delta, 'delta');
         setRes('res9-delta-max', delta_max, 'delta');
-        setRes('res9-slope', theta, 'slope');
-        setRes('res9-slope1', theta1, 'slope');
-        setRes('res9-slope2', theta2, 'slope', true);
-        setRes('res9-shear-v', V, 'shear', true);
         setRes('res9-shear-v1', V1, 'shear', true);
-        setRes('res9-shear-v2', V2, 'shear');
-        setRes('res9-moment', M, 'moment', true);
         setRes('res9-moment-max', M_max, 'moment', true);
     }
 
+    // Tab 10: Simply supported, equal end moments M0 (pure bending)
     function calculateSSMoments() {
-        const M0 = getBase('inp10-m0', 'm0');
-        const L = getBase('inp10-l', 'l');
-        let x = getBase('inp10-x', 'x');
-        const E = getBase('inp10-e', 'e');
-        const I = getBase('inp10-i', 'i');
-
+        const M0 = getBase('inp10-m0','m0'), L = getBase('inp10-l','l'), E = getBase('inp10-e','e'), I = getBase('inp10-i','i');
+        let x = getBase('inp10-x','x');
         if (x > L) { x = L; setBound('inp10-x', x); }
         if (x < 0) { x = 0; setBound('inp10-x', 0); }
-
         const EI = E * I;
-        const delta = -1 * (M0 * x / (2 * EI)) * (L - x);
-        const delta_max = (M0 * Math.pow(L, 2)) / (8 * EI); 
-        const theta = -1 * (M0 / (2 * EI)) * (L - 2 * x);
-        const theta1 = -1 * (M0 * L) / (2 * EI);
-        const theta2 = (M0 * L) / (2 * EI);
-        const V = 0;
-        const M = M0;
-
+        const delta = -(M0 * x / (2 * EI)) * (L - x);
+        const delta_max = -(M0 * L * L) / (8 * EI);
+        const V = 0, M = M0;
         setRes('res10-delta', delta, 'delta');
         setRes('res10-delta-max', delta_max, 'delta');
-        setRes('res10-slope', theta, 'slope');
-        setRes('res10-slope1', theta1, 'slope');
-        setRes('res10-slope2', theta2, 'slope', true);
         setRes('res10-shear', V, 'shear');
         setRes('res10-moment', M, 'moment');
     }
 
+    // Tab 11: Simply supported, moment M0 at one end
     function calculateSSOneMoment() {
-        const M0 = getBase('inp11-m0', 'm0');
-        const L = getBase('inp11-l', 'l');
-        let x = getBase('inp11-x', 'x');
-        const E = getBase('inp11-e', 'e');
-        const I = getBase('inp11-i', 'i');
-
+        const M0 = getBase('inp11-m0','m0'), L = getBase('inp11-l','l'), E = getBase('inp11-e','e'), I = getBase('inp11-i','i');
+        let x = getBase('inp11-x','x');
         if (x > L) { x = L; setBound('inp11-x', x); }
         if (x < 0) { x = 0; setBound('inp11-x', 0); }
-
         const EI = E * I;
-        const delta = -1 * (M0 * x / (6 * L * EI)) * (2 * Math.pow(L, 2) - 3 * L * x + Math.pow(x, 2));
-        const delta_max = (M0 * Math.pow(L, 2)) / (9 * Math.sqrt(3) * EI); 
-        const theta = -1 * (M0 / (6 * L * EI)) * (2 * Math.pow(L, 2) - 6 * L * x + 3 * Math.pow(x, 2));
-        const theta1 = -1 * (M0 * L) / (3 * EI);
-        const theta2 = (M0 * L) / (6 * EI);
-        const V = -1 * M0 / L;
-        const M = M0 * (1 - x / L);
-        const M_max = M0;
-
+        const delta = -(M0 * x / (6 * L * EI)) * (2 * L * L - 3 * L * x + x * x);
+        const V = -M0 / L, M_max = M0;
         setRes('res11-delta', delta, 'delta');
-        setRes('res11-delta-max', delta_max, 'delta');
-        setRes('res11-slope', theta, 'slope');
-        setRes('res11-slope1', theta1, 'slope');
-        setRes('res11-slope2', theta2, 'slope', true);
         setRes('res11-shear', V, 'shear');
-        setRes('res11-moment', M, 'moment', true);
         setRes('res11-moment-max', M_max, 'moment', true);
     }
 
+    // Tab 12: Simply supported, moment M0 at centre (antisymmetric)
     function calculateSSCenterMoment() {
-        const M0 = getBase('inp12-m0', 'm0');
-        const L = getBase('inp12-l', 'l');
-        let x = getBase('inp12-x', 'x');
-        const E = getBase('inp12-e', 'e');
-        const I = getBase('inp12-i', 'i');
-
+        const M0 = getBase('inp12-m0','m0'), L = getBase('inp12-l','l'), E = getBase('inp12-e','e'), I = getBase('inp12-i','i');
+        let x = getBase('inp12-x','x');
         if (x > L) { x = L; setBound('inp12-x', x); }
         if (x < 0) { x = 0; setBound('inp12-x', 0); }
-
-        const EI = E * I;
-        const halfL = L / 2;
-        let delta, theta, V, M;
-
-        if (x <= halfL) {
-            delta = -1 * (M0 * x / (24 * L * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x, 2));
-            theta = -1 * (M0 / (24 * L * EI)) * (Math.pow(L, 2) - 12 * Math.pow(x, 2));
+        const EI = E * I, hL = L / 2;
+        let delta, V;
+        if (x <= hL) {
+            delta = -(M0 * x / (24 * L * EI)) * (L * L - 4 * x * x);
             V = M0 / L;
-            M = (M0 * x) / L;
         } else {
-            let x_mirror = L - x;
-            delta = (M0 * x_mirror / (24 * L * EI)) * (Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
-            theta = -1 * (M0 / (24 * L * EI)) * (Math.pow(L, 2) - 12 * Math.pow(x_mirror, 2));
+            const xm = L - x;
+            delta = (M0 * xm / (24 * L * EI)) * (L * L - 4 * xm * xm);
             V = M0 / L;
-            M = -1 * (M0 * x_mirror) / L;
         }
-
-        const theta1 = -1 * (M0 * L) / (24 * EI);
-        const theta2 = -1 * (M0 * L) / (24 * EI);
         const M_max = M0 / 2;
-
         setRes('res12-delta', delta, 'delta');
-        setRes('res12-slope', theta, 'slope');
-        setRes('res12-slope1', theta1, 'slope');
-        setRes('res12-slope2', theta2, 'slope');
         setRes('res12-shear', V, 'shear', true);
-        setRes('res12-moment', M, 'moment', true);
         setRes('res12-moment-max', M_max, 'moment', true);
     }
 
+    // Tab 13: Fixed-fixed, central point load
     function calculateFFCenterLoad() {
-        const F = getBase('inp13-f', 'f');
-        const L = getBase('inp13-l', 'l');
-        let x = getBase('inp13-x', 'x');
-        const E = getBase('inp13-e', 'e');
-        const I = getBase('inp13-i', 'i');
-
+        const F = getBase('inp13-f','f'), L = getBase('inp13-l','l'), E = getBase('inp13-e','e'), I = getBase('inp13-i','i');
+        let x = getBase('inp13-x','x');
         if (x > L) { x = L; setBound('inp13-x', x); }
         if (x < 0) { x = 0; setBound('inp13-x', 0); }
-
-        const EI = E * I;
-        const halfL = L / 2;
-        let delta, V, M;
-
-        if (x <= halfL) {
-            delta = -1 * (F * Math.pow(x, 2) / (48 * EI)) * (3 * L - 4 * x);
-            V = F / 2;
-            M = (F * (4 * x - L)) / 8;
+        const EI = E * I, hL = L / 2;
+        let delta;
+        if (x <= hL) {
+            delta = -(F * x * x / (48 * EI)) * (3 * L - 4 * x);
         } else {
-            let x_mirror = L - x;
-            delta = -1 * (F * Math.pow(x_mirror, 2) / (48 * EI)) * (3 * L - 4 * x_mirror);
-            V = -F / 2;
-            M = (F * (4 * x_mirror - L)) / 8;
+            const xm = L - x;
+            delta = -(F * xm * xm / (48 * EI)) * (3 * L - 4 * xm);
         }
-
-        const delta_max = (F * Math.pow(L, 3)) / (192 * EI);
-        const V1 = F / 2;
-        const V2 = -F / 2;
-        const M1 = -1 * (F * L) / 8; 
-        const M2 = (F * L) / 8;
-
+        const delta_max = -(F * Math.pow(L, 3)) / (192 * EI);
+        const V1 = F / 2, M1 = -(F * L) / 8, M2 = (F * L) / 8;
         setRes('res13-delta', delta, 'delta');
         setRes('res13-delta-max', delta_max, 'delta');
-        setRes('res13-shear', V, 'shear', true);
         setRes('res13-shear-v1', V1, 'shear', true);
-        setRes('res13-shear-v2', V2, 'shear');
-        setRes('res13-moment', M, 'moment', true);
         setRes('res13-moment-m1', M1, 'moment');
         setRes('res13-moment-m2', M2, 'moment', true);
     }
 
+    // Tab 14: Fixed-fixed, UDL
     function calculateFFUDL() {
-        const w = getBase('inp14-w', 'w');
-        const L = getBase('inp14-l', 'l');
-        let x = getBase('inp14-x', 'x');
-        const E = getBase('inp14-e', 'e');
-        const I = getBase('inp14-i', 'i');
-
+        const w = getBase('inp14-w','w'), L = getBase('inp14-l','l'), E = getBase('inp14-e','e'), I = getBase('inp14-i','i');
+        let x = getBase('inp14-x','x');
         if (x > L) { x = L; setBound('inp14-x', x); }
         if (x < 0) { x = 0; setBound('inp14-x', 0); }
-
         const EI = E * I;
-        const delta = -1 * (w * Math.pow(x, 2) / (24 * EI)) * Math.pow(L - x, 2);
-        const delta_max = (w * Math.pow(L, 4)) / (384 * EI);
-        const V = w * (L / 2 - x);
+        const delta = -(w * x * x / (24 * EI)) * Math.pow(L - x, 2);
+        const delta_max = -(w * Math.pow(L, 4)) / (384 * EI);
         const V1 = (w * L) / 2;
-        const V2 = -1 * (w * L) / 2;
-        const M = (w / 12) * (6 * L * x - 6 * Math.pow(x, 2) - Math.pow(L, 2));
-        const M1 = -1 * (w * Math.pow(L, 2)) / 12; 
-        const M2 = (w * Math.pow(L, 2)) / 24;
-
+        const M1 = -(w * L * L) / 12, M2 = (w * L * L) / 24;
         setRes('res14-delta', delta, 'delta');
         setRes('res14-delta-max', delta_max, 'delta');
-        setRes('res14-shear', V, 'shear', true);
         setRes('res14-shear-v1', V1, 'shear', true);
-        setRes('res14-shear-v2', V2, 'shear');
-        setRes('res14-moment', M, 'moment', true);
         setRes('res14-moment-m1', M1, 'moment');
         setRes('res14-moment-m2', M2, 'moment', true);
     }
 
+    // Tab 15: Simply supported, UDL + central point load (superposition)
     function calculateSSCombined() {
-        const F = getBase('inp15-f', 'f');
-        const w = getBase('inp15-w', 'w');
-        const L = getBase('inp15-l', 'l');
-        let x = getBase('inp15-x', 'x');
-        const E = getBase('inp15-e', 'e');
-        const I = getBase('inp15-i', 'i');
-
+        const F = getBase('inp15-f','f'), w = getBase('inp15-w','w'), L = getBase('inp15-l','l');
+        const E = getBase('inp15-e','e'), I = getBase('inp15-i','i');
+        let x = getBase('inp15-x','x');
         if (x > L) { x = L; setBound('inp15-x', x); }
         if (x < 0) { x = 0; setBound('inp15-x', 0); }
-
-        const EI = E * I;
-        const halfL = L / 2;
-        
-        let delta, V, M;
-
-        if (x <= halfL) {
-            let delta_udl = (w * x / (24 * EI)) * (Math.pow(L, 3) - 2 * L * Math.pow(x, 2) + Math.pow(x, 3));
-            let delta_pl = (F * x / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x, 2));
-            delta = -1 * (delta_udl + delta_pl);
-
-            V = w * (L / 2 - x) + F / 2;
-            M = (w * x / 2) * (L - x) + (F * x) / 2;
+        const EI = E * I, hL = L / 2;
+        let delta;
+        if (x <= hL) {
+            const d_udl = (w * x / (24 * EI)) * (Math.pow(L, 3) - 2 * L * x * x + Math.pow(x, 3));
+            const d_pl = (F * x / (48 * EI)) * (3 * L * L - 4 * x * x);
+            delta = -(d_udl + d_pl);
         } else {
-            let x_mirror = L - x;
-            let delta_udl = (w * x_mirror / (24 * EI)) * (Math.pow(L, 3) - 2 * L * Math.pow(x_mirror, 2) + Math.pow(x_mirror, 3));
-            let delta_pl = (F * x_mirror / (48 * EI)) * (3 * Math.pow(L, 2) - 4 * Math.pow(x_mirror, 2));
-            delta = -1 * (delta_udl + delta_pl);
-
-            V = w * (L / 2 - x) - F / 2; 
-            M = (w * x_mirror / 2) * (L - x_mirror) + (F * x_mirror) / 2;
+            const xm = L - x;
+            const d_udl = (w * xm / (24 * EI)) * (Math.pow(L, 3) - 2 * L * xm * xm + Math.pow(xm, 3));
+            const d_pl = (F * xm / (48 * EI)) * (3 * L * L - 4 * xm * xm);
+            delta = -(d_udl + d_pl);
         }
-
-        const delta_max = (5 * w * Math.pow(L, 4)) / (384 * EI) + (F * Math.pow(L, 3)) / (48 * EI);
+        const delta_max = -((5 * w * Math.pow(L, 4)) / (384 * EI) + (F * Math.pow(L, 3)) / (48 * EI));
         const V_max = (w * L) / 2 + F / 2;
-        const M_max = (w * Math.pow(L, 2)) / 8 + (F * L) / 4;
-
+        const M_max = (w * L * L) / 8 + (F * L) / 4;
         setRes('res15-delta', delta, 'delta');
         setRes('res15-delta-max', delta_max, 'delta');
         setRes('res15-shear-max', V_max, 'shear', true);
@@ -1825,18 +1611,14 @@
     }
 
     function calculateAll() {
-        calculate(); calculateInt(); calculateUDL(); calculateTri(); calculateMoment(); 
-        calculateSS(); calculateSSCenter(); calculateSS2Loads(); calculateSSUDL(); 
-        calculateSSMoments(); calculateSSOneMoment(); calculateSSCenterMoment(); 
+        calculate(); calculateInt(); calculateUDL(); calculateTri(); calculateMoment();
+        calculateSS(); calculateSSCenter(); calculateSS2Loads(); calculateSSUDL();
+        calculateSSMoments(); calculateSSOneMoment(); calculateSSCenterMoment();
         calculateFFCenterLoad(); calculateFFUDL(); calculateSSCombined();
     }
 
-    // Trigger DOM Setup prior to MathJax finalizing on load
     setupUnitsDOM();
-
-    window.onload = function() {
-        calculateAll();
-    };
+    window.onload = function() { calculateAll(); };
 </script>
 </body>
 </html>
